@@ -262,7 +262,7 @@ def register():
         elif step == 'resend':
             reg = session.get('pending_reg')
             if not reg:
-                flash('Session expired. Please register again.','danger')
+                flash('Session has expired. Please register again.','danger')
                 db.close()
                 return render_template('auth/register.html', step='details', v={'name':'','email':'','sno':'','phone':''})
             new_otp = generate_otp()

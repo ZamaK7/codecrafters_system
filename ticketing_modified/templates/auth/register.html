@@ -81,8 +81,8 @@ h2{font-size:1.25rem;font-weight:700;color:#1a2035;margin-bottom:.25rem;}
       </div>
       <div class="col-12">
         <label class="form-label">Email Address <span style="color:#003B71">*</span></label>
-        <input type="email" name="email" class="form-control" id="emailInput" placeholder="yourname@gmail.com or yourname@dut4life.ac.za" value="{{ v.email }}" required oninput="chkEmail(this.value)">
-        <div class="form-text" id="emailHint"><i class="fas fa-envelope me-1"></i>Must be @gmail.com or @dut4life.ac.za</div>
+        <input type="email" name="email" class="form-control" id="emailInput" placeholder="studentnumber@dut4life.ac.za" value="{{ v.email }}" required oninput="chkEmail(this.value)">
+        <div class="form-text" id="emailHint"><i class="fas fa-envelope me-1"></i>Must be @dut4life.ac.za</div>
       </div>
       <div class="col-md-6">
         <label class="form-label">Student Number</label>
@@ -193,14 +193,14 @@ function chkMatch(){
 function chkEmail(v){
   const hint = document.getElementById('emailHint');
   const inp  = document.getElementById('emailInput');
-  if(!v){ hint.textContent='Must be @gmail.com or @dut4life.ac.za'; hint.style.color='#888'; return; }
-  const ok = v.endsWith('@gmail.com') || v.endsWith('@dut4life.ac.za');
+  if(!v){ hint.textContent='Must be @dut4life.ac.za'; hint.style.color='#888'; return; }
+  const ok = v.endsWith('@dut4life.ac.za');
   if(ok){
     hint.innerHTML='<i class="fas fa-check-circle me-1"></i>Valid email domain';
     hint.style.color='#2e7d32';
     inp.style.borderColor='#2e7d32';
   } else {
-    hint.innerHTML='<i class="fas fa-exclamation-circle me-1"></i>Must end with @gmail.com or @dut4life.ac.za';
+    hint.innerHTML='<i class="fas fa-exclamation-circle me-1"></i>Must end with @dut4life.ac.za';
     hint.style.color='#e65100';
     inp.style.borderColor='#e65100';
   }

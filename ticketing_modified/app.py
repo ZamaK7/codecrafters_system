@@ -185,11 +185,11 @@ def register():
             errs  = []
             if not name:  errs.append('Full name is required.')
             # Email domain validation
-            allowed_domains = ('@gmail.com', '@dut4life.ac.za')
+            allowed_domains = ('@dut4life.ac.za')
             if not email or '@' not in email:
                 errs.append('Valid email address is required.')
             elif not any(email.endswith(d) for d in allowed_domains):
-                errs.append('Email must be a @gmail.com or @dut4life.ac.za address.')
+                errs.append('Email must be a @dut4life.ac.za address.')
             if db.execute("SELECT id FROM users WHERE email=?",(email,)).fetchone(): errs.append('Email already registered.')
             # Student number validation: 8 digits, starts with 2
             import re

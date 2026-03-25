@@ -118,7 +118,7 @@ def init_db():
     # Format: (student_no, full_name, email, password_hash, role, dept_name)
     # Emails follow name.surname@dut.ac.za — max 3 staff per department
     seed = [
-        # System accounts
+        # System demo accounts
         (None,       'Super Administrator', 'admin@dut.ac.za',          generate_password_hash('Admin@2026'),   'superadmin', None),
         ('21000001', 'Demo Student',        'student@dut.ac.za',         generate_password_hash('Student@2026'), 'student',    None),
         # Finance (3)

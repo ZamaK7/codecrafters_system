@@ -14,7 +14,7 @@ app.secret_key = 'codecrafters-dut-group2-2026'
 # ── OTP / Email / SMS Config ─────────────────────────────────────────────────
 # Gmail: replace with your Gmail and App Password (myaccount.google.com > Security > App Passwords)
 GMAIL_USER     = 'p.themba3468@gmail.com'
-GMAIL_PASSWORD = 'otnhjbtaznwnqdor'
+GMAIL_PASSWORD = 'otnhjbtaznwnqdoraqvy'
 # Africa's Talking: replace with your credentials from africastalking.com
 AT_USERNAME    = 'sandbox'          # use 'sandbox' for testing
 AT_API_KEY     = 'atsk_bce6b1a5d23d261f2e92581fb96dc24552489a03a53d6f58be6b30313601b0833f41e61d'

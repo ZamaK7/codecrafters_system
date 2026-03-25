@@ -239,7 +239,7 @@ def register():
             entered_otp = request.form.get('otp','').strip()
             reg = session.get('pending_reg')
             if not reg:
-                flash('Session expired. Please register again.','danger')
+                flash('Session has expired. Please register again.','danger')
                 db.close()
                 return render_template('auth/register.html', step='details', v={'name':'','email':'','sno':'','phone':''})
             if entered_otp != reg['otp']:

@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+{% block title %}My Dashboard — CodeCrafters{% endblock %}
+{% block page_title %}Technician <span>Dashboard</span>{% endblock %}
+{% block extra_css %}
+<style>
+.welcome-bar{background:linear-gradient(135deg,#003B71 60%,#1a5fa8 100%);color:#fff;border-radius:14px;padding:1.3rem 1.7rem;margin-bottom:1.3rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;}
+.welcome-bar h5{margin:0;font-size:1.05rem;font-weight:700;}
+.stat-card{border-radius:13px;padding:1.1rem 1.2rem;color:#fff;height:100%;display:flex;align-items:center;gap:.9rem;}
+.stat-icon{width:48px;height:48px;border-radius:10px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+.stat-val{font-size:2rem;font-weight:800;line-height:1;}
+.stat-lbl{font-size:.7rem;font-weight:600;opacity:.85;text-transform:uppercase;letter-spacing:.05em;margin-top:2px;}
+/* Tabs */
+.task-tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:1rem;}
+.task-tab{padding:.55rem 1.2rem;font-size:.83rem;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2.5px solid transparent;margin-bottom:-2px;transition:all .15s;display:flex;align-items:center;gap:.4rem;}
+.task-tab.active{color:#003B71;border-bottom-color:#003B71;}
+.task-tab .tab-badge{background:#003B71;color:#fff;border-radius:10px;font-size:.63rem;padding:1px 7px;font-weight:700;}
+.task-tab.active-tab .tab-badge{background:#F5A800;color:#003B71;}
+.task-tab.pending-tab .tab-badge{background:#e65100;}
+.task-tab.resolved-tab .tab-badge{background:#2e7d32;}
+/* Task row */
+.task-row{display:flex;align-items:center;padding:.9rem 1rem;border-bottom:1px solid var(--border);gap:.8rem;text-decoration:none;color:inherit;transition:background .12s;}
+.task-row:last-child{border-bottom:none;}
+.task-row:hover{background:#f0f4fb;}
+.prio-bar{width:4px;height:36px;border-radius:2px;flex-shrink:0;}
+.task-tno{font-family:'JetBrains Mono',monospace;font-size:.73rem;font-weight:700;color:#003B71;background:#eef2f8;padding:2px 7px;border-radius:5px;white-space:nowrap;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+.accept-btn{background:#F5A800;color:#003B71;border:none;border-radius:7px;padding:.35rem .85rem;font-size:.76rem;font-weight:700;cursor:pointer;white-space:nowrap;}
+.accept-btn:hover{background:#d4900a;}
+.empty-panel{text-align:center;padding:2rem;color:var(--muted);}
+.empty-panel i{font-size:2rem;opacity:.25;display:block;margin-bottom:.5rem;}
+</style>
+{% endblock %}
+{% block content %}
+
+<!-- Welcome -->
+<div class="welcome-bar">
+  <div>
+    <h5><i class="fas fa-user-hard-hat me-2" style="color:#F5A800"></i>Welcome, {{ cu['full_name'] }}</h5>
+    <div style="font-size:.8rem;opacity:.7;margin-top:3px">
+      <i class="fas fa-building me-1"></i>{{ cu['dept_name'] or 'No department' }}
+      &nbsp;·&nbsp; <i class="fas fa-envelope me-1"></i>{{ cu['email'] }}
+    </div>
+  </div>
+  <div style="font-size:.75rem;opacity:.6"><i class="fas fa-shield-alt me-1"></i>Technician Account</div>
+</div>
+
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card" style="background:linear-gradient(135deg,#003B71,#1a5fa8)">
+      <div class="stat-icon"><i class="fas fa-tasks"></i></div>
+      <div><div class="stat-val">{{ stats.total }}</div><div class="stat-lbl">Total Assigned</div></div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card" style="background:linear-gradient(135deg,#e65100,#ef6c00)">
+      <div class="stat-icon"><i class="fas fa-hourglass-start"></i></div>
+      <div><div class="stat-val">{{ stats.pending }}</div><div class="stat-lbl">Pending Accept</div></div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card" style="background:linear-gradient(135deg,#1260a3,#1565c0)">
+      <div class="stat-icon"><i class="fas fa-spinner"></i></div>
+      <div><div class="stat-val">{{ stats.active }}</div><div class="stat-lbl">Active / In Progress</div></div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card" style="background:linear-gradient(135deg,#2e7d32,#388e3c)">
+      <div class="stat-icon"><i class="fas fa-check-double"></i></div>
+      <div><div class="stat-val">{{ stats.resolved }}</div><div class="stat-lbl">Resolved</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-head" style="padding-bottom:0;flex-direction:column;align-items:flex-start;gap:.5rem">
+        <h6 style="margin:0"><i class="fas fa-clipboard-list me-2" style="color:#003B71"></i>My Tasks</h6>
+        <!-- Tabs -->
+        <div class="task-tabs w-100">
+          <div class="task-tab active active-tab" onclick="showTab('active')">
+            <i class="fas fa-spinner"></i> Active
+            <span class="tab-badge">{{ stats.active }}</span>
+          </div>
+          <div class="task-tab pending-tab" onclick="showTab('pending')">
+            <i class="fas fa-inbox"></i> Pending Accept
+            <span class="tab-badge" style="background:#e65100">{{ stats.pending }}</span>
+          </div>
+          <div class="task-tab resolved-tab" onclick="showTab('resolved')">
+            <i class="fas fa-check-circle"></i> Resolved
+            <span class="tab-badge" style="background:#2e7d32">{{ stats.resolved }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-body p-0">
+
+        <!-- ACTIVE TAB -->
+        <div id="tab-active" class="tab-panel active">
+          {% set active_tasks = my_tasks | selectattr('status', 'in', ['In Progress','Assigned']) | list %}
+          {% if active_tasks %}
+            {% for t in active_tasks %}
+            {% set pc = '#e65100' if t['priority']=='Urgent' else '#003B71' if t['priority']=='High' else '#F5A800' if t['priority']=='Medium' else '#aaa' %}
+            <a href="{{ url_for('staff_ticket', tno=t['ticket_no']) }}" class="task-row">
+              <div class="prio-bar" style="background:{{ pc }}"></div>
+              <span class="task-tno">{{ t['ticket_no'] }}</span>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t['subject'] }}</div>
+                <div style="font-size:.73rem;color:var(--muted)">{{ t['student_name'] }} · {{ t['dept_name'] }} · {{ t['created_at'][:10] }}</div>
+              </div>
+              <span class="st-badge st-{{ t['status'].replace(' ','-') }}">{{ t['status'] }}</span>
+              <i class="fas fa-chevron-right ms-2" style="font-size:.7rem;color:var(--muted)"></i>
+            </a>
+            {% endfor %}
+          {% else %}
+          <div class="empty-panel"><i class="fas fa-check"></i>No active tasks right now</div>
+          {% endif %}
+        </div>
+
+        <!-- PENDING TAB -->
+        <div id="tab-pending" class="tab-panel">
+          {% set pending_tasks = my_tasks | selectattr('status', 'in', ['Pending','Assigned']) | list %}
+          {% set truly_pending = [] %}
+          {% for t in my_tasks %}{% if t['status'] in ('Pending','Assigned') and t['assigned_to'] == cu['id'] %}{% set _ = truly_pending.append(t) %}{% endif %}{% endfor %}
+          {% if dept_queue %}
+            <div style="padding:.6rem 1rem;font-size:.72rem;font-weight:700;color:#e65100;background:#fff8f0;border-bottom:1px solid var(--border)">
+              <i class="fas fa-inbox me-1"></i>{{ dept_queue|length }} unassigned in your department — click Accept to take ownership
+            </div>
+            {% for t in dept_queue %}
+            {% set pc = '#e65100' if t['priority']=='Urgent' else '#003B71' if t['priority']=='High' else '#F5A800' if t['priority']=='Medium' else '#aaa' %}
+            <div class="task-row">
+              <div class="prio-bar" style="background:{{ pc }}"></div>
+              <span class="task-tno">{{ t['ticket_no'] }}</span>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t['subject'] }}</div>
+                <div style="font-size:.73rem;color:var(--muted)">{{ t['student_name'] }} · {{ t['priority'] }} · {{ t['created_at'][:10] }}</div>
+              </div>
+              <form method="POST" action="{{ url_for('staff_ticket', tno=t['ticket_no']) }}" style="flex-shrink:0">
+                <input type="hidden" name="action" value="accept">
+                <button type="submit" class="accept-btn"><i class="fas fa-hand-point-right me-1"></i>Accept</button>
+              </form>
+            </div>
+            {% endfor %}
+          {% else %}
+          <div class="empty-panel"><i class="fas fa-inbox"></i>No pending tasks in your department</div>
+          {% endif %}
+        </div>
+
+        <!-- RESOLVED TAB -->
+        <div id="tab-resolved" class="tab-panel">
+          {% set resolved_tasks = my_tasks | selectattr('status', 'in', ['Resolved','Closed']) | list %}
+          {% if resolved_tasks %}
+            {% for t in resolved_tasks %}
+            {% set pc = '#e65100' if t['priority']=='Urgent' else '#003B71' if t['priority']=='High' else '#F5A800' if t['priority']=='Medium' else '#aaa' %}
+            <a href="{{ url_for('staff_ticket', tno=t['ticket_no']) }}" class="task-row">
+              <div class="prio-bar" style="background:#2e7d32"></div>
+              <span class="task-tno">{{ t['ticket_no'] }}</span>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t['subject'] }}</div>
+                <div style="font-size:.73rem;color:var(--muted)">{{ t['student_name'] }} · Resolved {{ t['resolved_at'][:10] if t['resolved_at'] else '—' }}</div>
+              </div>
+              {% if t['rating'] %}
+              <span style="font-size:.85rem;color:#f59e4b">{% for i in range(t['rating']) %}★{% endfor %}</span>
+              {% endif %}
+              <span class="st-badge st-Resolved">{{ t['status'] }}</span>
+              <i class="fas fa-chevron-right ms-2" style="font-size:.7rem;color:var(--muted)"></i>
+            </a>
+            {% endfor %}
+          {% else %}
+          <div class="empty-panel"><i class="fas fa-check-double"></i>No resolved tasks yet</div>
+          {% endif %}
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Notifications -->
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-head">
+        <h6><i class="fas fa-bell me-2" style="color:#003B71"></i>Notifications
+          {% if unread > 0 %}<span class="badge ms-1" style="background:#F5A800;color:#003B71;font-size:.63rem">{{ unread }}</span>{% endif %}
+        </h6>
+        {% if notifications %}<a href="{{ url_for('mark_all_read') }}" style="font-size:.7rem;color:var(--muted);text-decoration:none">Mark all read</a>{% endif %}
+      </div>
+      <div class="card-body p-0">
+        {% if notifications %}
+          {% for n in notifications %}
+          <div style="padding:.7rem 1rem;border-bottom:1px solid var(--border);display:flex;gap:.6rem">
+            <div style="width:8px;height:8px;border-radius:50%;background:{% if not n['is_read'] %}#F5A800{% else %}var(--border){% endif %};flex-shrink:0;margin-top:5px"></div>
+            <div>
+              <div style="font-size:.8rem;font-weight:{% if not n['is_read'] %}700{% else %}400{% endif %}">{{ n['title'] }}</div>
+              <div style="font-size:.72rem;color:var(--muted);margin-top:1px">{{ n['message'][:65] }}{% if n['message']|length>65 %}…{% endif %}</div>
+              <div style="font-size:.66rem;color:var(--muted);margin-top:2px">{{ n['created_at'][:16] }}</div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-panel py-3"><i class="fas fa-bell-slash" style="font-size:1.3rem"></i><br><span style="font-size:.82rem">All caught up!</span></div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.task-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+</script>
+{% endblock %}

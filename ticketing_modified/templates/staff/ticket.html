@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+{% block title %}{{ ticket['ticket_no'] }} — Staff View{% endblock %}
+{% block page_title %}<span>{{ ticket['ticket_no'] }}</span>{% endblock %}
+{% block extra_css %}
+<style>
+.ticket-hero{background:linear-gradient(135deg,#003B71,#1a5fa8);color:#fff;border-radius:14px;padding:1.4rem 1.8rem;margin-bottom:1.2rem;}
+.ticket-hero h5{margin:0 0 .4rem;font-size:1.05rem;font-weight:700;}
+.meta-pill{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.15);padding:3px 10px;border-radius:20px;font-size:.72rem;margin-right:5px;}
+.info-row{display:flex;justify-content:space-between;padding:.55rem 0;border-bottom:1px solid var(--border);font-size:.84rem;}
+.info-row:last-child{border-bottom:none;}
+.info-lbl{color:var(--muted);font-weight:500;}
+.info-val{font-weight:600;text-align:right;}
+/* Timeline */
+.tl{position:relative;padding-left:1.6rem;}
+.tl::before{content:'';position:absolute;left:9px;top:0;bottom:0;width:2px;background:var(--border);}
+.tl-item{position:relative;margin-bottom:1.1rem;}
+.tl-dot{width:18px;height:18px;border-radius:50%;position:absolute;left:-1.6rem;top:3px;border:3px solid #fff;box-shadow:0 0 0 2px #003B71;background:#003B71;display:flex;align-items:center;justify-content:center;}
+.tl-dot.internal{background:#F5A800;box-shadow:0 0 0 2px #F5A800;}
+.tl-dot.student{background:#2e7d32;box-shadow:0 0 0 2px #2e7d32;}
+.tl-dot.new{animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 2px #003B71}50%{box-shadow:0 0 0 5px rgba(0,59,113,.3)}}
+.tl-card{background:#fff;border:1px solid var(--border);border-radius:9px;padding:.8rem 1rem;}
+.tl-card.internal-note{background:#fffbee;border-color:#F5A800;}
+.tl-ts{font-size:.7rem;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+.status-change{display:inline-flex;align-items:center;gap:5px;font-size:.75rem;font-weight:600;margin-bottom:.3rem;}
+/* Accept banner */
+.accept-banner{background:linear-gradient(135deg,#fff8e1,#fffde7);border:2px solid #F5A800;border-radius:12px;padding:1.1rem 1.4rem;margin-bottom:1.2rem;display:flex;align-items:center;gap:1rem;}
+.accept-btn{background:#F5A800;color:#003B71;border:none;border-radius:8px;padding:.55rem 1.4rem;font-weight:700;font-size:.88rem;cursor:pointer;transition:all .15s;}
+.accept-btn:hover{background:#d4900a;transform:translateY(-1px);}
+/* Live indicator */
+.live-dot{width:8px;height:8px;background:#2e7d32;border-radius:50%;display:inline-block;animation:blink 1.2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+</style>
+{% endblock %}
+{% block content %}
+
+<div class="mb-3">
+  <a href="{{ url_for('staff_dashboard') }}" style="font-size:.82rem;color:#003B71;text-decoration:none;font-weight:600">
+    <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+  </a>
+</div>
+
+<!-- Accept Banner (show if ticket is assigned to this staff but still Pending/Assigned) -->
+{% if ticket['assigned_to'] == cu['id'] and ticket['status'] in ('Pending','Assigned') %}
+<div class="accept-banner">
+  <i class="fas fa-bell" style="font-size:1.5rem;color:#F5A800;flex-shrink:0"></i>
+  <div style="flex:1">
+    <div style="font-weight:700;color:#003B71">This ticket has been assigned to you!</div>
+    <div style="font-size:.82rem;color:#555;margin-top:2px">Click Accept to start working on it — the student will be notified.</div>
+  </div>
+  <form method="POST">
+    <input type="hidden" name="action" value="accept">
+    <button type="submit" class="accept-btn"><i class="fas fa-check me-1"></i>Accept Task</button>
+  </form>
+</div>
+{% endif %}
+
+<!-- Ticket Hero -->
+<div class="ticket-hero">
+  <h5>{{ ticket['subject'] }}</h5>
+  <div>
+    <span class="meta-pill"><i class="fas fa-hashtag"></i>{{ ticket['ticket_no'] }}</span>
+    <span class="meta-pill"><i class="fas fa-building"></i>{{ ticket['dept_name'] }}</span>
+    <span class="meta-pill"><i class="fas fa-exclamation"></i>{{ ticket['priority'] }}</span>
+    <span class="meta-pill"><i class="fas fa-calendar"></i>{{ ticket['created_at'][:10] }}</span>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Left: Timeline -->
+  <div class="col-lg-8">
+
+    <!-- Description -->
+    <div class="card mb-3">
+      <div class="card-head"><h6><i class="fas fa-align-left me-2" style="color:#003B71"></i>Ticket Description</h6></div>
+      <div class="card-body">
+        <p style="font-size:.87rem;line-height:1.7;margin:0">{{ ticket['description'] }}</p>
+      </div>
+    </div>
+
+    <!-- Live Updates Timeline -->
+    <div class="card mb-3">
+      <div class="card-head">
+        <h6><i class="fas fa-history me-2" style="color:#003B71"></i>Updates Timeline</h6>
+        <span style="font-size:.73rem;color:#2e7d32"><span class="live-dot"></span> Live</span>
+      </div>
+      <div class="card-body">
+        <div class="tl" id="timeline">
+          {% for upd in updates %}
+          <div class="tl-item" data-id="{{ upd['id'] }}">
+            <div class="tl-dot {% if upd['is_internal'] %}internal{% elif upd['author_role']=='student' %}student{% endif %}"></div>
+            <div class="tl-card {% if upd['is_internal'] %}internal-note{% endif %}">
+              {% if upd['old_status'] and upd['new_status'] %}
+              <div class="status-change">
+                <span class="st-badge st-{{ upd['old_status'].replace(' ','-') }}">{{ upd['old_status'] }}</span>
+                <i class="fas fa-arrow-right" style="color:var(--muted);font-size:.65rem"></i>
+                <span class="st-badge st-{{ upd['new_status'].replace(' ','-') }}">{{ upd['new_status'] }}</span>
+              </div>
+              {% endif %}
+              <div style="font-size:.84rem;line-height:1.6">{{ upd['message'] }}</div>
+              <div class="d-flex justify-content-between align-items-center mt-1">
+                <span style="font-size:.74rem;font-weight:600;color:#003B71">
+                  <i class="fas fa-user-circle me-1"></i>{{ upd['author_name'] }}
+                  <span style="font-size:.67rem;color:var(--muted);font-weight:400">({{ upd['author_role'] }})</span>
+                </span>
+                <span class="tl-ts">{{ upd['created_at'][:16] }}</span>
+              </div>
+              {% if upd['is_internal'] %}
+              <div style="font-size:.68rem;color:#9a6200;margin-top:3px"><i class="fas fa-lock me-1"></i>Internal note — not visible to student</div>
+              {% endif %}
+            </div>
+          </div>
+          {% else %}
+          <div style="text-align:center;color:var(--muted);font-size:.84rem;padding:1rem">No updates yet</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Post Update -->
+    {% if ticket['assigned_to'] == cu['id'] or cu['role'] == 'superadmin' %}
+    <div class="card">
+      <div class="card-head"><h6><i class="fas fa-comment-alt me-2" style="color:#003B71"></i>Post Update</h6></div>
+      <div class="card-body">
+        <form method="POST" id="updateForm">
+          <input type="hidden" name="action" value="update">
+          <div class="mb-3">
+            <label class="form-label">Update Message <span style="color:#003B71">*</span></label>
+            <textarea name="message" class="form-control" rows="3" placeholder="Describe the update, steps taken, or resolution..." required></textarea>
+          </div>
+          <div class="mb-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="is_internal" id="intNote">
+              <label class="form-check-label" for="intNote" style="font-size:.82rem">
+                <i class="fas fa-lock me-1" style="color:#F5A800"></i>Internal note (hidden from student)
+              </label>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane me-2"></i>Post Update</button>
+        </form>
+      </div>
+    </div>
+
+    {% if ticket['status'] == 'In Progress' %}
+    <!-- Resolve ticket -->
+    <div class="card mt-3" style="border:2px solid #2e7d32">
+      <div class="card-head" style="background:linear-gradient(135deg,#e8f5e9,#f1f8e9)">
+        <h6 style="color:#2e7d32"><i class="fas fa-check-circle me-2"></i>Mark as Resolved</h6>
+      </div>
+      <div class="card-body">
+        <p style="font-size:.82rem;color:#555;margin-bottom:.9rem">Once resolved, the student will be notified and prompted to rate the experience. Only mark as resolved when the issue is fully addressed.</p>
+        <form method="POST">
+          <input type="hidden" name="action" value="resolve">
+          <div class="mb-3">
+            <label class="form-label" style="font-size:.82rem;font-weight:600">Resolution Summary <span style="color:#2e7d32">*</span></label>
+            <textarea name="message" class="form-control" rows="2" placeholder="Briefly describe how the issue was resolved…" required></textarea>
+          </div>
+          <button type="submit" class="btn w-100" style="background:#2e7d32;color:#fff;font-weight:700;border-radius:8px;">
+            <i class="fas fa-check-circle me-2"></i>Mark as Resolved
+          </button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="alert alert-warning">
+      <i class="fas fa-info-circle me-2"></i>This ticket is not assigned to you. Accept it from the dashboard to post updates.
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Right: Ticket Info -->
+  <div class="col-lg-4">
+    <div class="card mb-3">
+      <div class="card-head"><h6><i class="fas fa-info-circle me-2" style="color:#003B71"></i>Ticket Info</h6></div>
+      <div class="card-body">
+        <div class="info-row"><span class="info-lbl">Status</span><span class="info-val"><span class="st-badge st-{{ ticket['status'].replace(' ','-') }}">{{ ticket['status'] }}</span></span></div>
+        <div class="info-row"><span class="info-lbl">Priority</span><span class="info-val"><span class="st-badge pr-{{ ticket['priority'] }}">{{ ticket['priority'] }}</span></span></div>
+        <div class="info-row"><span class="info-lbl">Department</span><span class="info-val">{{ ticket['dept_name'] }}</span></div>
+        <div class="info-row"><span class="info-lbl">Submitted</span><span class="info-val">{{ ticket['created_at'][:10] }}</span></div>
+        <div class="info-row"><span class="info-lbl">Last Updated</span><span class="info-val">{{ ticket['updated_at'][:10] }}</span></div>
+      </div>
+    </div>
+
+    <!-- Student Info -->
+    <div class="card mb-3">
+      <div class="card-head"><h6><i class="fas fa-user-graduate me-2" style="color:#003B71"></i>Student</h6></div>
+      <div class="card-body">
+        {% if ticket['is_anonymous'] %}
+        <div style="text-align:center;color:var(--muted);font-size:.84rem"><i class="fas fa-user-secret d-block" style="font-size:1.5rem;margin-bottom:.4rem"></i>Anonymous submission</div>
+        {% else %}
+        <div class="info-row"><span class="info-lbl">Name</span><span class="info-val">{{ ticket['student_name'] }}</span></div>
+        {% if ticket['student_no'] %}<div class="info-row"><span class="info-lbl">Student No</span><span class="info-val">{{ ticket['student_no'] }}</span></div>{% endif %}
+        {% if ticket['student_email'] %}<div class="info-row"><span class="info-lbl">Email</span><span class="info-val" style="font-size:.76rem">{{ ticket['student_email'] }}</span></div>{% endif %}
+        {% if ticket['student_phone'] %}<div class="info-row"><span class="info-lbl">Phone</span><span class="info-val">{{ ticket['student_phone'] }}</span></div>{% endif %}
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Attachments -->
+    {% if attachments %}
+    <div class="card">
+      <div class="card-head"><h6><i class="fas fa-paperclip me-2" style="color:#003B71"></i>Attachments</h6></div>
+      <div class="card-body p-0">
+        {% for a in attachments %}
+        <a href="{{ url_for('static', filename='uploads/' + a['filename']) }}" target="_blank"
+           style="display:flex;align-items:center;gap:.6rem;padding:.65rem 1rem;border-bottom:1px solid var(--border);text-decoration:none;color:var(--text);font-size:.82rem;">
+          <i class="fas fa-file" style="color:#003B71"></i>
+          <span style="flex:1">{{ a['original_name'][:30] }}</span>
+          <i class="fas fa-download" style="color:var(--muted);font-size:.75rem"></i>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+// Real-time polling every 5 seconds
+let lastUpdateId = {{ updates[-1]['id'] if updates else 0 }};
+const tno = "{{ ticket['ticket_no'] }}";
+const statusBadge = document.querySelector('.st-badge[class*="st-"]');
+
+async function pollUpdates() {
+  try {
+    const res = await fetch(`/staff/ticket/${tno}/updates`);
+    const data = await res.json();
+    if (!data.updates) return;
+
+    // Check for new updates
+    const latestId = data.updates.length > 0 ? data.updates[0].id : 0;
+    if (latestId > lastUpdateId) {
+      lastUpdateId = latestId;
+      // Reload page to show new updates with full formatting
+      location.reload();
+    }
+  } catch(e) {}
+}
+
+// Poll every 5 seconds
+setInterval(pollUpdates, 5000);
+</script>
+{% endblock %}

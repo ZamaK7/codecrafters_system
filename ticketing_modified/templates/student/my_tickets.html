@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}My Tickets — CodeCrafters{% endblock %}
+{% block page_title %}My <span>Tickets</span>{% endblock %}
+{% block content %}
+<div class="card mb-3">
+  <div class="card-body py-3">
+    <form method="GET" class="row g-2 align-items-end">
+      <div class="col-md-4"><input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="Search by subject or ticket number…"></div>
+      <div class="col-md-3">
+        <select name="status" class="form-select form-select-sm">
+          <option value="">All Statuses</option>
+          {% for s in ['Pending','In Progress','Assigned','Resolved','Closed'] %}
+          <option value="{{ s }}" {% if status==s %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <select name="dept" class="form-select form-select-sm">
+          <option value="">All Departments</option>
+          {% for d in departments %}
+          <option value="{{ d['id'] }}" {% if dept==d['id']|string %}selected{% endif %}>{{ d['name'] }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2 d-flex gap-1">
+        <button type="submit" class="btn btn-primary btn-sm w-100">Filter</button>
+        <a href="{{ url_for('my_tickets') }}" class="btn btn-outline-secondary btn-sm" style="white-space:nowrap">✕</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-head">
+    <h6><i class="fas fa-list me-2" style="color:#003B71"></i>All Tickets
+      <span style="font-size:.79rem;font-weight:400;color:var(--muted)">({{ tickets|length }})</span>
+    </h6>
+    <a href="{{ url_for('submit_ticket') }}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>New Ticket</a>
+  </div>
+  <div class="card-body p-0">
+    {% if tickets %}
+    <div class="table-responsive">
+      <table class="table mb-0">
+        <thead><tr><th>Ticket No</th><th>Subject</th><th>Department</th><th>Priority</th><th>Status</th><th>Date</th><th></th></tr></thead>
+        <tbody>
+        {% for t in tickets %}
+        <tr>
+          <td><span class="tno">{{ t['ticket_no'] }}</span></td>
+          <td style="max-width:200px"><div style="font-weight:500;font-size:.85rem">{{ t['subject'][:45] }}{% if t['subject']|length>45 %}…{% endif %}</div></td>
+          <td><span style="font-size:.79rem;color:var(--muted)">{{ t['dept_name'] }}</span></td>
+          <td><span class="st-badge pr-{{ t['priority'] }}">{{ t['priority'] }}</span></td>
+          <td><span class="st-badge st-{{ t['status'].replace(' ','-') }}">{{ t['status'] }}</span></td>
+          <td><span style="font-size:.76rem;color:var(--muted)">{{ t['created_at'][:10] }}</span></td>
+          <td><a href="{{ url_for('view_ticket', tno=t['ticket_no']) }}" class="btn btn-outline-primary btn-sm">View</a></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-st"><i class="fas fa-search d-block"></i><p style="font-size:.88rem">No tickets found</p>
+      <a href="{{ url_for('submit_ticket') }}" class="btn btn-primary btn-sm">Submit a Ticket</a></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

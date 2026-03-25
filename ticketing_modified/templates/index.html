@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CodeCrafters — DUT Student Ticketing Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Sora',sans-serif;background:#001d3d;color:#fff;overflow-x:hidden;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1.1rem 2.5rem;display:flex;align-items:center;justify-content:space-between;background:rgba(0,29,61,.92);backdrop-filter:blur(14px);border-bottom:1px solid rgba(245,168,0,.25);}
+.nav-logo{font-size:1.2rem;font-weight:800;letter-spacing:-.03em;}.nav-logo span{color:#F5A800;}
+.nav-right{display:flex;gap:.7rem;}
+.btn-nl{padding:.48rem 1.1rem;border:1.5px solid rgba(255,255,255,.25);border-radius:8px;color:rgba(255,255,255,.85);text-decoration:none;font-size:.845rem;font-weight:500;transition:all .15s;}
+.btn-nl:hover{border-color:#F5A800;color:#F5A800;}
+.btn-nc{padding:.48rem 1.1rem;background:#F5A800;border-radius:8px;color:#003B71;text-decoration:none;font-size:.845rem;font-weight:700;transition:all .15s;}
+.btn-nc:hover{background:#d4900a;color:#003B71;}
+/* HERO */
+.hero{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:7rem 2.5rem 4rem;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 75% 55% at 50% 45%,rgba(245,168,0,.12) 0%,transparent 70%);pointer-events:none;}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(245,168,0,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(245,168,0,.05) 1px,transparent 1px);background-size:55px 55px;pointer-events:none;}
+.hero-content{max-width:760px;width:100%;position:relative;z-index:2;text-align:center;}
+.hero-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(245,168,0,.15);border:1px solid rgba(245,168,0,.35);padding:4px 13px;border-radius:20px;font-size:.72rem;font-weight:700;color:#F5A800;letter-spacing:.07em;text-transform:uppercase;margin-bottom:1.4rem;}
+h1{font-size:clamp(2.1rem,5vw,3.7rem);font-weight:800;line-height:1.1;letter-spacing:-.03em;margin-bottom:1.1rem;}
+h1 .acc{color:#F5A800;}
+.hero p{font-size:1rem;color:rgba(255,255,255,.65);line-height:1.72;max-width:560px;margin:0 auto 2rem auto;}
+.hero-btns{display:flex;gap:.9rem;flex-wrap:wrap;justify-content:center;}
+.btn-hp{padding:.82rem 1.9rem;background:#F5A800;color:#003B71;border-radius:9px;text-decoration:none;font-weight:700;font-size:.92rem;display:inline-flex;align-items:center;gap:7px;transition:all .2s;}
+.btn-hp:hover{background:#d4900a;color:#003B71;transform:translateY(-2px);box-shadow:0 8px 22px rgba(245,168,0,.35);}
+.btn-hs{padding:.82rem 1.9rem;border:1.5px solid rgba(255,255,255,.25);color:rgba(255,255,255,.85);border-radius:9px;text-decoration:none;font-weight:600;font-size:.92rem;display:inline-flex;align-items:center;gap:7px;transition:all .2s;}
+.btn-hs:hover{border-color:#F5A800;color:#F5A800;}
+/* STATS BAR */
+.stats-bar{background:rgba(255,255,255,.05);border:1px solid rgba(245,168,0,.2);border-radius:13px;padding:1.4rem 1.8rem;display:flex;gap:2.2rem;flex-wrap:wrap;margin-top:2.8rem;justify-content:center;}
+.sbar-stat .num{font-family:'JetBrains Mono',monospace;font-size:1.55rem;font-weight:700;color:#F5A800;}
+.sbar-stat .lbl{font-size:.68rem;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.07em;}
+/* HOW IT WORKS */
+.steps{padding:5rem 2.5rem;background:#002952;text-align:center;}
+.sec-label{font-size:.7rem;font-weight:700;color:#F5A800;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.4rem;}
+.sec-title{font-size:1.9rem;font-weight:800;letter-spacing:-.03em;margin-bottom:2.8rem;}
+.step-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:13px;padding:1.7rem;transition:all .2s;height:100%;}
+.step-card:hover{border-color:rgba(245,168,0,.4);background:rgba(245,168,0,.06);transform:translateY(-3px);}
+.step-num{font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:700;color:rgba(245,168,0,.4);margin-bottom:.5rem;}
+.step-card h5{font-size:.95rem;font-weight:700;margin-bottom:.5rem;}
+.step-card p{font-size:.83rem;color:rgba(255,255,255,.5);line-height:1.65;margin:0;}
+/* How it works */
+.demo-s{padding:4rem 2.5rem;background:rgba(245,168,0,.05);border-top:1px solid rgba(245,168,0,.18);text-align:center;}
+.step-num{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.08);color:rgba(255,255,255,.4);font-size:.65rem;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto .5rem;}
+footer{padding:1.8rem 2.5rem;border-top:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem;font-size:.78rem;color:rgba(255,255,255,.35);}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-logo"><span>Code</span>Crafters</div>
+  <div style="position:absolute;left:50%;transform:translateX(-50%);">
+    <img src="{{ url_for('static', filename='envision2030.png') }}" alt="Envision 2030" style="height:42px;object-fit:contain;">
+  </div>
+  <div class="nav-right">
+    <a href="{{ url_for('login') }}" class="btn-nl">Sign In</a>
+    <a href="{{ url_for('register') }}" class="btn-nc">Register</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-tag"><i class="fas fa-shield-alt"></i>Durban University of Technology &mdash; Group 2</div>
+    <h1>Your issues,<br><span class="acc">tracked &amp; resolved.</span></h1>
+    <p>CodeCrafters is DUT's student ticketing system — a centralised platform to submit, track, and resolve grievances in under 72 hours, transparently and efficiently.</p>
+    <div class="hero-btns">
+      <a href="{{ url_for('register') }}" class="btn-hp"><i class="fas fa-ticket-alt"></i>Submit a Ticket</a>
+      <a href="{{ url_for('login') }}" class="btn-hs"><i class="fas fa-search"></i>Track My Ticket</a>
+    </div>
+    <div class="stats-bar">
+      <div class="sbar-stat"><div class="num">72h</div><div class="lbl">Response Target</div></div>
+      <div class="sbar-stat"><div class="num">10</div><div class="lbl">Departments</div></div>
+      <div class="sbar-stat"><div class="num">24/7</div><div class="lbl">Available</div></div>
+      <div class="sbar-stat"><div class="num">100%</div><div class="lbl">Tracked</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="steps">
+  <div class="container-fluid" style="max-width:1060px">
+    <div class="sec-label">How It Works</div>
+    <div class="sec-title">Four simple steps</div>
+    <div class="row g-3">
+      <div class="col-md-3"><div class="step-card">
+        <div class="step-num">01</div>
+        <h5>Create Account</h5>
+        <p>Register with your DUT email and student number. Your account is verified and secured.</p>
+      </div></div>
+      <div class="col-md-3"><div class="step-card">
+        <div class="step-num">02</div>
+        <h5>Submit Ticket</h5>
+        <p>Select your department, describe your issue, set priority, and attach supporting documents.</p>
+      </div></div>
+      <div class="col-md-3"><div class="step-card">
+        <div class="step-num">03</div>
+        <h5>Track Progress</h5>
+        <p>Get a unique ticket number. Track status in real time — Pending, In Progress, Assigned, Resolved.</p>
+      </div></div>
+      <div class="col-md-3"><div class="step-card">
+        <div class="step-num">04</div>
+        <h5>Rate Service</h5>
+        <p>Once resolved, rate the service provided to help DUT continuously improve response quality.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section class="demo-s">
+  <div class="container-fluid" style="max-width:1060px">
+    <div class="sec-label">Simple Process</div>
+    <div class="sec-title" style="font-size:1.45rem;margin-bottom:.6rem">How it works</div>
+    <p style="color:rgba(255,255,255,.5);font-size:.85rem;margin-bottom:2.4rem">Your grievance handled in four clear steps</p>
+    <div class="row g-4 align-items-start justify-content-center">
+
+      <!-- Step 1 -->
+      <div class="col-md-3 col-6">
+        <div style="position:relative">
+          <div style="width:58px;height:58px;border-radius:50%;background:rgba(245,168,0,.15);border:2px solid #F5A800;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.3rem;color:#F5A800;">
+            <i class="fas fa-paper-plane"></i>
+          </div>
+          <div style="position:absolute;top:29px;left:calc(50% + 29px);width:calc(100% - 29px);height:2px;background:linear-gradient(90deg,#F5A800,rgba(255,255,255,.1));display:none" class="step-line-md"></div>
+          <div class="step-num">1</div>
+          <div style="font-size:.93rem;font-weight:700;color:#fff;margin-bottom:.35rem">Submit Ticket</div>
+          <div style="font-size:.76rem;color:rgba(255,255,255,.45);line-height:1.6">Describe your issue and submit — you'll get a reference number instantly.</div>
+          <div style="margin-top:.7rem"><span style="font-size:.68rem;background:rgba(245,168,0,.15);color:#F5A800;border:1px solid rgba(245,168,0,.3);padding:2px 9px;border-radius:20px;font-weight:700">PENDING</span></div>
+        </div>
+      </div>
+
+      <!-- Arrow -->
+      <div class="col-auto d-none d-md-flex align-items-center" style="padding-top:0;margin-top:-1rem">
+        <i class="fas fa-chevron-right" style="color:rgba(255,255,255,.2);font-size:1.1rem"></i>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="col-md-3 col-6">
+        <div>
+          <div style="width:58px;height:58px;border-radius:50%;background:rgba(0,59,113,.25);border:2px solid #4a90d9;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.3rem;color:#4a90d9;">
+            <i class="fas fa-user-check"></i>
+          </div>
+          <div class="step-num">2</div>
+          <div style="font-size:.93rem;font-weight:700;color:#fff;margin-bottom:.35rem">Admin Assigns</div>
+          <div style="font-size:.76rem;color:rgba(255,255,255,.45);line-height:1.6">Admin reviews the ticket and assigns it to the right staff member.</div>
+          <div style="margin-top:.7rem"><span style="font-size:.68rem;background:rgba(74,144,217,.15);color:#4a90d9;border:1px solid rgba(74,144,217,.3);padding:2px 9px;border-radius:20px;font-weight:700">ASSIGNED</span></div>
+        </div>
+      </div>
+
+      <!-- Arrow -->
+      <div class="col-auto d-none d-md-flex align-items-center" style="padding-top:0;margin-top:-1rem">
+        <i class="fas fa-chevron-right" style="color:rgba(255,255,255,.2);font-size:1.1rem"></i>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="col-md-3 col-6">
+        <div>
+          <div style="width:58px;height:58px;border-radius:50%;background:rgba(18,96,163,.25);border:2px solid #1260a3;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.3rem;color:#6aadff;">
+            <i class="fas fa-tools"></i>
+          </div>
+          <div class="step-num">3</div>
+          <div style="font-size:.93rem;font-weight:700;color:#fff;margin-bottom:.35rem">Staff Works on It</div>
+          <div style="font-size:.76rem;color:rgba(255,255,255,.45);line-height:1.6">Staff accepts and works on your issue. You can track progress and add updates.</div>
+          <div style="margin-top:.7rem"><span style="font-size:.68rem;background:rgba(18,96,163,.2);color:#6aadff;border:1px solid rgba(18,96,163,.4);padding:2px 9px;border-radius:20px;font-weight:700">IN PROGRESS</span></div>
+        </div>
+      </div>
+
+      <!-- Arrow -->
+      <div class="col-auto d-none d-md-flex align-items-center" style="padding-top:0;margin-top:-1rem">
+        <i class="fas fa-chevron-right" style="color:rgba(255,255,255,.2);font-size:1.1rem"></i>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="col-md-3 col-6">
+        <div>
+          <div style="width:58px;height:58px;border-radius:50%;background:rgba(46,125,50,.2);border:2px solid #4caf50;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.3rem;color:#4caf50;">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div class="step-num">4</div>
+          <div style="font-size:.93rem;font-weight:700;color:#fff;margin-bottom:.35rem">Issue Resolved</div>
+          <div style="font-size:.76rem;color:rgba(255,255,255,.45);line-height:1.6">Staff marks the ticket resolved. You're notified and can rate your experience.</div>
+          <div style="margin-top:.7rem"><span style="font-size:.68rem;background:rgba(46,125,50,.2);color:#4caf50;border:1px solid rgba(46,125,50,.35);padding:2px 9px;border-radius:20px;font-weight:700">RESOLVED</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div>© 2026 Durban University of Technology &mdash; CodeCrafters &nbsp;|&nbsp; Group 2, PBDV301 &amp; PBDE401</div>
+  <div>Flask &bull; SQLite &bull; Bootstrap 5</div>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

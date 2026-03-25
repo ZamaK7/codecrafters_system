@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard — CodeCrafters{% endblock %}
+{% block page_title %}Admin <span>Dashboard</span>{% endblock %}
+{% block extra_css %}
+<style>
+.welcome-bar{background:linear-gradient(135deg,#003B71 60%,#002555 100%);color:#fff;border-radius:14px;padding:1.4rem 1.8rem;margin-bottom:1.4rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;}
+.welcome-bar h5{margin:0;font-size:1.15rem;font-weight:700;}
+.welcome-bar p{margin:0;font-size:.82rem;opacity:.75;}
+.stat-block{border-radius:13px;padding:1.1rem 1.3rem;color:#fff;display:flex;align-items:center;gap:1rem;height:100%;}
+.stat-block .sb-icon{width:52px;height:52px;border-radius:10px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
+.stat-block .sb-val{font-size:2rem;font-weight:800;line-height:1;font-family:'JetBrains Mono',monospace;}
+.stat-block .sb-lbl{font-size:.72rem;font-weight:600;opacity:.85;text-transform:uppercase;letter-spacing:.05em;margin-top:2px;}
+.ticket-row{display:flex;align-items:center;padding:.85rem 1rem;border-bottom:1px solid var(--border);gap:.8rem;transition:background .15s;}
+.ticket-row:last-child{border-bottom:none;}
+.ticket-row:hover{background:#f7f9fc;}
+.ticket-tno{font-family:'JetBrains Mono',monospace;font-size:.78rem;font-weight:700;color:#003B71;background:#eef2f8;padding:2px 8px;border-radius:5px;white-space:nowrap;}
+.qa-btn{display:flex;align-items:center;gap:10px;padding:.7rem 1rem;border-radius:9px;border:1.5px solid var(--border);background:#fff;color:var(--text);text-decoration:none;font-size:.84rem;font-weight:600;transition:all .15s;margin-bottom:.5rem;}
+.qa-btn:hover{border-color:#003B71;color:#003B71;background:#f0f4fb;}
+.qa-btn .qa-ic{width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;}
+.qa-btn-primary{background:#003B71;color:#fff;border-color:#003B71;}
+.qa-btn-primary:hover{background:#002555;color:#fff;}
+.top-issue{display:flex;align-items:center;gap:10px;padding:.6rem 0;border-bottom:1px solid var(--border);font-size:.84rem;}
+.top-issue:last-child{border-bottom:none;}
+.ti-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
+</style>
+{% endblock %}
+{% block content %}
+
+<div class="welcome-bar">
+  <div>
+    <h5><i class="fas fa-tachometer-alt me-2" style="color:#F5A800"></i>Staff Dashboard</h5>
+    <p>Overview of all tickets and system activity.</p>
+  </div>
+  <a href="{{ url_for('admin_tickets') }}?assigned=unassigned" class="btn btn-sm" style="background:#F5A800;color:#003B71;font-weight:700;border-radius:9px;padding:.5rem 1.2rem;">
+    <i class="fas fa-inbox me-1"></i>View Unassigned
+  </a>
+</div>
+
+{% if stats.urgent > 0 %}
+<div class="alert alert-danger d-flex align-items-center gap-2 mb-3">
+  <i class="fas fa-exclamation-triangle"></i>
+  <strong>{{ stats.urgent }} URGENT</strong> ticket{{ 's' if stats.urgent!=1 }} need immediate attention.
+  <a href="{{ url_for('admin_tickets') }}?priority=Urgent" class="ms-auto btn btn-sm btn-danger" style="border-radius:6px">View Now</a>
+</div>
+{% endif %}
+
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-block" style="background:linear-gradient(135deg,#003B71,#1a5fa8)">
+      <div class="sb-icon"><i class="fas fa-envelope"></i></div>
+      <div><div class="sb-val">{{ stats.pending }}</div><div class="sb-lbl">New Tickets</div></div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-block" style="background:linear-gradient(135deg,#2e7d32,#43a047)">
+      <div class="sb-icon"><i class="fas fa-spinner"></i></div>
+      <div><div class="sb-val">{{ stats.in_progress }}</div><div class="sb-lbl">In Progress</div></div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-block" style="background:linear-gradient(135deg,#757575,#9e9e9e)">
+      <div class="sb-icon"><i class="fas fa-check-circle"></i></div>
+      <div><div class="sb-val">{{ stats.resolved }}</div><div class="sb-lbl">Resolved</div></div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-block" style="background:linear-gradient(135deg,#e65100,#f57c00)">
+      <div class="sb-icon"><i class="fas fa-exclamation-triangle"></i></div>
+      <div><div class="sb-val">{{ stats.urgent }}</div><div class="sb-lbl">High Priority</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Recent Tickets -->
+  <div class="col-lg-8">
+    <div class="card mb-3">
+      <div class="card-head">
+        <h6><i class="fas fa-ticket-alt me-2" style="color:#003B71"></i>Tickets Assigned to You</h6>
+        <a href="{{ url_for('admin_tickets') }}" class="btn btn-sm btn-outline-primary">View All</a>
+      </div>
+      <div class="card-body p-0">
+        {% if recent %}
+          {% for t in recent[:6] %}
+          <div class="ticket-row">
+            <span class="ticket-tno">{{ t['ticket_no'] }}</span>
+            <div style="flex:1;min-width:0;margin:0 .6rem">
+              <div style="font-size:.85rem;font-weight:600;color:var(--text)">{{ t['subject'][:42] }}{% if t['subject']|length>42 %}…{% endif %}</div>
+              <div style="font-size:.74rem;color:var(--muted)">
+                {% if t['is_anonymous'] %}<i class="fas fa-user-secret me-1"></i>Anonymous{% else %}{{ t['student_name'] }}{% endif %}
+                · {{ t['dept_name'] }}
+              </div>
+            </div>
+            <span class="st-badge st-{{ t['status'].replace(' ','-') }} me-2">{{ t['status'] }}</span>
+            <a href="{{ url_for('admin_view_ticket', tno=t['ticket_no']) }}" class="btn btn-primary btn-sm">View</a>
+            <i class="fas fa-chevron-right ms-1" style="font-size:.7rem;color:var(--muted)"></i>
+          </div>
+          {% endfor %}
+        {% else %}
+        <div class="empty-st"><i class="fas fa-inbox d-block"></i><p style="font-size:.88rem">No tickets yet</p></div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Dept Overview -->
+    <div class="card">
+      <div class="card-head"><h6><i class="fas fa-chart-bar me-2" style="color:#003B71"></i>Ticket Overview by Department</h6></div>
+      <div class="card-body">
+        {% set max_d = dept_stats|map(attribute='cnt')|max if dept_stats else 1 %}
+        {% for d in dept_stats %}{% if d['cnt'] > 0 %}
+        <div class="mb-3">
+          <div class="d-flex justify-content-between mb-1">
+            <span style="font-size:.82rem;font-weight:500">{{ d['name'] }}</span>
+            <span style="font-size:.78rem;color:var(--muted);font-family:'JetBrains Mono',monospace">{{ d['cnt'] }}</span>
+          </div>
+          <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden">
+            <div style="height:100%;background:linear-gradient(90deg,#003B71,#1a5fa8);border-radius:4px;width:{{ ((d['cnt']/max_d)*100)|round|int }}%;transition:width .4s"></div>
+          </div>
+        </div>
+        {% endif %}{% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Panel -->
+  <div class="col-lg-4">
+    <!-- Quick Actions -->
+    <div class="card mb-3">
+      <div class="card-head"><h6><i class="fas fa-bolt me-2" style="color:#003B71"></i>Quick Actions</h6></div>
+      <div class="card-body">
+        <a href="{{ url_for('admin_tickets') }}" class="qa-btn qa-btn-primary">
+          <div class="qa-ic" style="background:rgba(255,255,255,.2)"><i class="fas fa-ticket-alt"></i></div>View All Tickets
+        </a>
+        <a href="{{ url_for('admin_tickets') }}?assigned=me" class="qa-btn">
+          <div class="qa-ic" style="background:#eef2f8;color:#003B71"><i class="fas fa-user-check"></i></div>My Tasks
+        </a>
+        <a href="{{ url_for('admin_reports') }}" class="qa-btn">
+          <div class="qa-ic" style="background:#e8f8ee;color:#2e7d32"><i class="fas fa-chart-bar"></i></div>Reports
+        </a>
+        {% if cu['role']=='superadmin' %}
+        <a href="{{ url_for('add_user') }}" class="qa-btn">
+          <div class="qa-ic" style="background:#fff8e6;color:#e65100"><i class="fas fa-user-plus"></i></div>Add User
+        </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Top Issues -->
+    <div class="card mb-3">
+      <div class="card-head"><h6><i class="fas fa-list-ul me-2" style="color:#003B71"></i>Top Issues</h6></div>
+      <div class="card-body">
+        {% set colors = ['#003B71','#2e7d32','#e65100','#F5A800','#757575'] %}
+        {% for d in dept_stats[:5] %}{% if d['cnt'] > 0 %}
+        <div class="top-issue">
+          <div class="ti-dot" style="background:{{ colors[loop.index0] }}"></div>
+          <span style="flex:1">{{ d['name'] }}</span>
+          <a href="{{ url_for('admin_tickets') }}?dept={{ d['id'] }}" style="font-size:.7rem;color:#003B71;text-decoration:none;font-weight:600"><i class="fas fa-chevron-right"></i></a>
+        </div>
+        {% endif %}{% endfor %}
+      </div>
+    </div>
+
+    <!-- System Stats -->
+    <div class="card">
+      <div class="card-head"><h6><i class="fas fa-chart-pie me-2" style="color:#003B71"></i>System Stats</h6></div>
+      <div class="card-body">
+        <div class="d-flex justify-content-between py-2" style="border-bottom:1px solid var(--border)">
+          <span style="font-size:.83rem;color:var(--muted)">Tickets This Month</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:#003B71">{{ stats.total }}</span>
+        </div>
+        <div class="d-flex justify-content-between py-2" style="border-bottom:1px solid var(--border)">
+          <span style="font-size:.83rem;color:var(--muted)">Resolved</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:#2e7d32">{{ stats.resolved }}</span>
+        </div>
+        <div class="d-flex justify-content-between py-2">
+          <span style="font-size:.83rem;color:var(--muted)">Pending Review</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:#F5A800">{{ stats.pending }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

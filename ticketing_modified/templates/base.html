@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block title %}CodeCrafters — DUT Ticketing{% endblock %}</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<style>
+:root{--red:#003B71;--accent:#F5A800;--dark:#002555;--sw:255px;--bg:#f0f4f9;--card:#fff;--border:#dce4ef;--text:#1a2035;--muted:#6b7693;}
+*{box-sizing:border-box;}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+/* SIDEBAR */
+.sidebar{width:var(--sw);min-height:100vh;background:#002555;position:fixed;top:0;left:0;display:flex;flex-direction:column;z-index:1000;transition:transform .28s ease;}
+.sb-brand{padding:1.4rem 1.3rem 1.1rem;border-bottom:1px solid rgba(255,255,255,.07);}
+.sb-logo{font-size:1.15rem;font-weight:800;color:#fff;letter-spacing:-.03em;}
+.sb-logo span{color:#F5A800;}
+.sb-tagline{font-size:.65rem;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.1em;margin-top:2px;}
+.sb-dut-badge{background:#F5A800;color:#003B71;font-size:.58rem;padding:2px 7px;border-radius:4px;font-weight:700;letter-spacing:.07em;display:inline-block;margin-bottom:5px;}
+.sb-nav{flex:1;padding:.9rem .7rem;overflow-y:auto;}
+.sb-section{font-size:.6rem;font-weight:700;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.14em;padding:.9rem .6rem .35rem;}
+.sb-link{display:flex;align-items:center;gap:9px;padding:.58rem .85rem;border-radius:8px;color:rgba(255,255,255,.6);text-decoration:none;font-size:.845rem;font-weight:500;transition:all .15s;margin-bottom:2px;}
+.sb-link:hover{background:rgba(255,255,255,.07);color:#fff;}
+.sb-link.active{background:#F5A800;color:#003B71;box-shadow:0 4px 14px rgba(245,168,0,.32);}
+.sb-icon{width:17px;text-align:center;font-size:.82rem;flex-shrink:0;}
+.sb-footer{padding:.9rem;border-top:1px solid rgba(255,255,255,.07);}
+.uc{display:flex;align-items:center;gap:9px;padding:.65rem .75rem;background:rgba(255,255,255,.05);border-radius:9px;margin-bottom:6px;}
+.uc-av{width:32px;height:32px;border-radius:50%;background:#F5A800;display:flex;align-items:center;justify-content:center;color:#003B71;font-size:.75rem;font-weight:700;flex-shrink:0;}
+.uc-name{font-size:.78rem;color:#fff;font-weight:600;line-height:1.2;}
+.uc-role{font-size:.65rem;color:rgba(255,255,255,.4);text-transform:capitalize;}
+/* MAIN */
+.main{margin-left:var(--sw);min-height:100vh;display:flex;flex-direction:column;}
+.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:.8rem 1.6rem;display:flex;align-items:center;gap:.9rem;position:sticky;top:0;z-index:99;}
+.topbar-title{font-size:1rem;font-weight:700;flex:1;} .topbar-title span{color:#F5A800;}
+.tb-btn{width:35px;height:35px;border-radius:8px;border:1px solid var(--border);background:transparent;display:flex;align-items:center;justify-content:center;color:var(--muted);cursor:pointer;transition:all .15s;text-decoration:none;position:relative;}
+.tb-btn:hover{background:var(--bg);color:var(--text);}
+.ndot{width:7px;height:7px;background:#F5A800;border-radius:50%;position:absolute;top:4px;right:4px;border:2px solid #fff;}
+.page-body{padding:1.6rem;flex:1;}
+/* CARDS */
+.card{border:1px solid var(--border);border-radius:13px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.card-head{padding:1rem 1.3rem .85rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.card-head h6{font-size:.88rem;font-weight:700;margin:0;}
+/* STAT */
+.stat-c{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:1.2rem 1.3rem;transition:transform .2s,box-shadow .2s;}
+.stat-c:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.07);}
+.stat-ic{width:42px;height:42px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1rem;margin-bottom:.8rem;}
+.stat-num{font-size:1.9rem;font-weight:700;line-height:1;font-family:'JetBrains Mono',monospace;}
+.stat-lbl{font-size:.75rem;color:var(--muted);font-weight:500;margin-top:3px;}
+/* BADGES */
+.st-badge{font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;}
+.st-Pending{background:#fff8e6;color:#9a6200;} .st-In-Progress{background:#e8f4fd;color:#1260a3;}
+.st-Resolved{background:#e8f8ee;color:#157a3a;} .st-Closed{background:#f0f0f0;color:#555;}
+.st-Assigned{background:#f3e8ff;color:#7c3aed;}
+.pr-Low{background:#e8f8ee;color:#157a3a;} .pr-Medium{background:#fff8e6;color:#9a6200;}
+.pr-High{background:#fff0f0;color:#003B71;} .pr-Urgent{background:#003B71;color:#F5A800;}
+/* TABLE */
+.table{font-size:.84rem;} .table th{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:2px solid var(--border);padding:.7rem 1rem;}
+.table td{padding:.7rem 1rem;vertical-align:middle;border-color:var(--border);}
+.table tbody tr:hover{background:rgba(0,59,113,.025);}
+.tno{font-family:'JetBrains Mono',monospace;font-size:.76rem;background:var(--bg);padding:2px 7px;border-radius:5px;color:#003B71;font-weight:700;}
+/* FORMS */
+.form-control,.form-select{border:1.5px solid var(--border);border-radius:8px;font-size:.86rem;padding:.58rem .88rem;font-family:'Sora',sans-serif;}
+.form-control:focus,.form-select:focus{border-color:#003B71;box-shadow:0 0 0 3px rgba(0,59,113,.12);}
+.form-label{font-size:.8rem;font-weight:600;margin-bottom:4px;}
+/* BTN */
+.btn-primary{background:#003B71;border-color:#003B71;font-weight:600;font-size:.86rem;border-radius:8px;padding:.58rem 1.2rem;}
+.btn-primary:hover{background:#002555;border-color:#002555;transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,59,113,.3);}
+.btn-outline-primary{border-color:#003B71;color:#003B71;font-weight:600;border-radius:8px;font-size:.86rem;}
+.btn-outline-primary:hover{background:#003B71;border-color:#003B71;}
+.btn-sm{font-size:.78rem;padding:.32rem .75rem;}
+/* ALERT */
+.alert{border-radius:9px;border:none;font-size:.845rem;font-weight:500;}
+.alert-success{background:#e8f8ee;color:#157a3a;} .alert-danger{background:#fff0f0;color:#003B71;}
+.alert-warning{background:#fff8e6;color:#9a6200;} .alert-info{background:#e8f4fd;color:#1260a3;}
+/* TIMELINE */
+.tl{position:relative;padding-left:1.5rem;}
+.tl::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:var(--border);}
+.tl-item{position:relative;margin-bottom:1.2rem;}
+.tl-dot{width:16px;height:16px;border-radius:50%;background:#F5A800;position:absolute;left:-1.5rem;top:4px;border:3px solid #fff;box-shadow:0 0 0 2px #F5A800;}
+.tl-dot.internal{background:var(--muted);box-shadow:0 0 0 2px var(--muted);}
+.tl-card{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:.8rem 1rem;}
+.tl-ts{font-size:.7rem;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+/* EMPTY */
+.empty-st{text-align:center;padding:2.5rem 1rem;color:var(--muted);}
+.empty-st i{font-size:2.2rem;margin-bottom:.9rem;opacity:.35;}
+/* MOBILE */
+.sb-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.15rem;cursor:pointer;}
+.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;}
+@media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main{margin-left:0}.sb-toggle{display:block}.sb-overlay.show{display:block}}
+</style>
+{% block extra_css %}{% endblock %}
+</head>
+<body>
+{% if cu %}
+<div class="sb-overlay" id="sbo" onclick="closeSB()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-brand">
+    <div class="sb-dut-badge">DUT</div>
+    <div class="sb-logo"><span>Code</span>Crafters</div>
+    <div class="sb-tagline">Student Ticketing System</div>
+  </div>
+  <nav class="sb-nav">
+    {% if cu['role'] in ('staff','superadmin') %}
+
+    {% if cu['role'] == 'staff' %}
+    <!-- STAFF sidebar -->
+    <div class="sb-section">My Work</div>
+    <a href="{{ url_for('staff_dashboard') }}" class="sb-link {% if request.endpoint=='staff_dashboard' %}active{% endif %}">
+      <span class="sb-icon"><i class="fas fa-tachometer-alt"></i></span>My Dashboard
+    </a>
+    <div class="sb-section">Tasks</div>
+    <a href="{{ url_for('staff_dashboard') }}#my-tasks" class="sb-link {% if request.endpoint in ('staff_ticket',) %}active{% endif %}">
+      <span class="sb-icon"><i class="fas fa-tasks"></i></span>My Tasks
+    </a>
+    <a href="{{ url_for('staff_dashboard') }}#dept-queue" class="sb-link">
+      <span class="sb-icon"><i class="fas fa-inbox"></i></span>Dept Queue
+    </a>
+    <div class="sb-section">Account</div>
+    <a href="{{ url_for('profile') }}" class="sb-link {% if request.endpoint=='profile' %}active{% endif %}">
+      <span class="sb-icon"><i class="fas fa-user-circle"></i></span>Profile
+    </a>
+
+    {% else %}
+    <!-- SUPERADMIN sidebar -->
+    <div class="sb-section">Overview</div>
+    <a href="{{ url_for('admin_dashboard') }}" class="sb-link {% if request.endpoint=='admin_dashboard' %}active{% endif %}">
+      <span class="sb-icon"><i class="fas fa-chart-pie"></i></span>Dashboard
+    </a>
+    <div class="sb-section">Tickets</div>
+    <a href="{{ url_for('admin_tickets') }}" class="sb-link {% if request.endpoint=='admin_tickets' %}active{% endif %}">
+      <span class="sb-icon"><i class="fas fa-ticket-alt"></i></span>All Tickets
+    </a>
+    <a href="{{ url_for('admin_tickets') }}?assigned=me" class="sb-link {% if request.args.get('assigned')=='me' %}active{% endif %}">
+      <span class="sb-icon"><i class="fas fa-user-check"></i></span>Assigned to Me
+    </a>
+    <a href="{{ url_for('admin_tickets') }}?assigned=unassigned" class="sb-link {% if request.args.get('assigned')=='unassigned' %}active{% endif %}">
+      <span class="sb-icon"><i class="fas fa-inbox"></i></span>Unassigned
+    </a>
+    <div class="sb-section">Management</div>
+    <a href="{{ url_for('admin_reports') }}" class="sb-link {% if request.endpoint=='admin_reports' %}active{% endif %}">
+      <span class="sb-icon"><i class="fas fa-chart-bar"></i></span>Reports
+    </a>
+    <a href="{{ url_for('weekly_report_page') }}" class="sb-link {% if request.endpoint in ('weekly_report_page','download_weekly_report') %}active{% endif %}">
+      <span class="sb-icon"><i class="fas fa-file-pdf"></i></span>Weekly PDF
+    </a>
+    <a href="{{ url_for('admin_users') }}" class="sb-link {% if request.endpoint in ('admin_users','add_user') %}active{% endif %}">
+      <span class="sb-icon"><i class="fas fa-users"></i></span>Users
+    </a>
+    <a href="{{ url_for('admin_departments') }}" class="sb-link {% if request.endpoint=='admin_departments' %}active{% endif %}">
+      <span class="sb-icon"><i class="fas fa-building"></i></span>Departments
+    </a>
+    {% endif %}
+    {% else %}
+    <div class="sb-section">My Portal</div>
+    <a href="{{ url_for('dashboard') }}" class="sb-link {% if request.endpoint=='dashboard' %}active{% endif %}">
+      <span class="sb-icon"><i class="fas fa-home"></i></span>Dashboard
+    </a>
+    <a href="{{ url_for('submit_ticket') }}" class="sb-link {% if request.endpoint=='submit_ticket' %}active{% endif %}">
+      <span class="sb-icon"><i class="fas fa-plus-circle"></i></span>Submit Ticket
+    </a>
+    <a href="{{ url_for('my_tickets') }}" class="sb-link {% if request.endpoint in ('my_tickets','view_ticket') %}active{% endif %}">
+      <span class="sb-icon"><i class="fas fa-list"></i></span>My Tickets
+    </a>
+    <a href="https://www.dut.ac.za/student_services/temp-application-and-registration-information-faqs/" target="_blank" class="sb-link">
+      <span class="sb-icon"><i class="fas fa-question-circle"></i></span>FAQs
+    </a>
+    <div class="sb-section">Account</div>
+    <a href="{{ url_for('profile') }}" class="sb-link {% if request.endpoint=='profile' %}active{% endif %}">
+      <span class="sb-icon"><i class="fas fa-user-circle"></i></span>Profile
+    </a>
+    {% endif %}
+  </nav>
+  <div class="sb-footer">
+    <div class="uc">
+      <div class="uc-av">{{ cu['full_name'][:2].upper() }}</div>
+      <div><div class="uc-name">{{ cu['full_name'].split()[0] }}</div><div class="uc-role">{{ cu['role'] }}</div></div>
+    </div>
+    <a href="{{ url_for('logout') }}" class="sb-link" style="color:rgba(255,100,100,.8)">
+      <span class="sb-icon"><i class="fas fa-sign-out-alt"></i></span>Log Out
+    </a>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <button class="sb-toggle" onclick="toggleSB()"><i class="fas fa-bars"></i></button>
+    <div class="topbar-title">{% block page_title %}Dashboard{% endblock %}</div>
+    <a href="#notifPanel" class="tb-btn" data-bs-toggle="offcanvas">
+      <i class="fas fa-bell" style="font-size:.88rem"></i>
+      {% if unread>0 %}<span class="ndot"></span>{% endif %}
+    </a>
+    <a href="{{ url_for('profile') if cu['role']=='student' else url_for('admin_dashboard') }}" class="tb-btn">
+      <span style="font-size:.68rem;font-weight:800;color:#F5A800">{{ cu['full_name'][:2].upper() }}</span>
+    </a>
+    <a href="{{ url_for('logout') }}" class="tb-btn" title="Logout" style="border-color:#fff;background:#003B71;color:#fff;">
+      <i class="fas fa-sign-out-alt" style="font-size:.88rem"></i>
+    </a>
+  </div>
+
+  <div class="px-4 pt-3">
+    {% with messages=get_flashed_messages(with_categories=true) %}
+      {% for cat,msg in messages %}
+      <div class="alert alert-{{cat}} alert-dismissible fade show">
+        <i class="fas fa-{% if cat=='success' %}check-circle{% elif cat=='danger' %}exclamation-circle{% elif cat=='warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
+        {{msg|safe}}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+      {% endfor %}
+    {% endwith %}
+  </div>
+
+  <div class="page-body">{% block content %}{% endblock %}</div>
+</div>
+
+<!-- Notifications panel -->
+<div class="offcanvas offcanvas-end" id="notifPanel" tabindex="-1" style="width:330px">
+  <div class="offcanvas-header" style="border-bottom:1px solid var(--border)">
+    <h6 class="offcanvas-title fw-bold">Notifications {% if unread>0 %}<span class="badge bg-danger ms-1" style="font-size:.65rem">{{unread}}</span>{% endif %}</h6>
+    <div class="d-flex gap-2 align-items-center">
+      {% if unread>0 %}<a href="{{ url_for('mark_all_read') }}" style="font-size:.73rem;color:var(--muted);text-decoration:none">Mark all read</a>{% endif %}
+      <button class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+  </div>
+  <div class="offcanvas-body p-0">
+    {% if notifs %}
+      {% for n in notifs %}
+      <div class="p-3 {% if not n['is_read'] %}bg-light{% endif %}" style="border-bottom:1px solid var(--border)">
+        <div class="d-flex justify-content-between gap-2">
+          <div>
+            <div style="font-size:.81rem;font-weight:{% if not n['is_read'] %}600{% else %}400{% endif %}">{{ n['title'] }}</div>
+            <div style="font-size:.76rem;color:var(--muted);margin-top:2px">{{ n['message'] }}</div>
+            <div style="font-size:.68rem;color:var(--muted);margin-top:3px">{{ n['created_at'][:16] }}</div>
+          </div>
+          {% if not n['is_read'] %}
+          <a href="{{ url_for('mark_read', nid=n['id']) }}" class="flex-shrink-0">
+            <span style="width:7px;height:7px;border-radius:50%;background:var(--red);display:inline-block;margin-top:4px"></span>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-st"><i class="fas fa-bell-slash d-block"></i>No notifications</div>
+    {% endif %}
+  </div>
+</div>
+
+{% else %}
+<div class="container">
+  {% with messages=get_flashed_messages(with_categories=true) %}
+    {% for cat,msg in messages %}
+    <div class="alert alert-{{cat}} mt-3">{{msg|safe}}</div>
+    {% endfor %}
+  {% endwith %}
+</div>
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function toggleSB(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sbo').classList.toggle('show');}
+function closeSB(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sbo').classList.remove('show');}
+setTimeout(()=>{document.querySelectorAll('.alert').forEach(a=>{try{new bootstrap.Alert(a).close()}catch(e){}});},5000);
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

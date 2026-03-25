@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Register — CodeCrafters</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<style>
+*{box-sizing:border-box;}
+body{font-family:'Sora',sans-serif;background:#001d3d;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 65% 55% at 50% 40%,rgba(245,168,0,.08) 0%,transparent 70%);pointer-events:none;}
+.card{width:100%;max-width:480px;background:#fff;border-radius:18px;padding:2.4rem;position:relative;z-index:1;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.brand{text-align:center;margin-bottom:1.6rem;}
+.brand-logo{font-size:1.35rem;font-weight:800;color:#003B71;letter-spacing:-.03em;}.brand-logo span{color:#F5A800;}
+.brand-sub{font-size:.68rem;color:#888;margin-top:3px;}
+h2{font-size:1.25rem;font-weight:700;color:#1a2035;margin-bottom:.25rem;}
+.sub{font-size:.79rem;color:#888;margin-bottom:1.5rem;}
+.form-label{font-size:.77rem;font-weight:600;color:#444;margin-bottom:4px;}
+.form-control{border:1.5px solid #dce4ef;color:#1a2035;border-radius:9px;padding:.62rem .88rem;font-size:.85rem;font-family:'Sora',sans-serif;transition:all .15s;}
+.form-control:focus{border-color:#003B71;box-shadow:0 0 0 3px rgba(0,59,113,.1);}
+.form-text{font-size:.71rem;color:#888;margin-top:3px;}
+.btn-submit{width:100%;background:#003B71;border:none;color:#fff;font-weight:700;font-size:.88rem;padding:.78rem;border-radius:9px;font-family:'Sora',sans-serif;transition:all .15s;cursor:pointer;}
+.btn-submit:hover{background:#002555;transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,59,113,.3);}
+.foot-link{text-align:center;margin-top:1.2rem;font-size:.79rem;color:#888;}
+.foot-link a{color:#003B71;text-decoration:none;font-weight:600;}
+.alert{border-radius:9px;border:none;font-size:.8rem;font-weight:500;margin-bottom:1rem;}
+.pw-bar{height:3px;border-radius:2px;margin-top:5px;background:#eee;transition:all .3s;}
+.pw-req{display:flex;align-items:center;color:#aaa;transition:color .2s;}
+.pw-req.ok{color:#2e7d32;}
+.pw-req.ok i{color:#2e7d32;}
+.popia-box{background:#f0f4f9;border:1px solid #dce4ef;border-radius:9px;padding:.8rem 1rem;margin:1rem 0;font-size:.73rem;color:#666;line-height:1.6;}
+/* OTP Step */
+.otp-info{background:#eef2f8;border:1px solid #c8d8ee;border-radius:12px;padding:1.2rem;text-align:center;margin-bottom:1.4rem;}
+.otp-info .otp-icon{font-size:2rem;color:#003B71;margin-bottom:.5rem;}
+.otp-info p{font-size:.82rem;color:#555;margin:0;}
+.otp-info strong{color:#003B71;}
+.otp-input{text-align:center;font-size:2rem;font-weight:800;letter-spacing:10px;color:#003B71;font-family:monospace;border:2px solid #003B71;border-radius:12px;padding:.8rem;}
+.otp-input:focus{border-color:#F5A800;box-shadow:0 0 0 3px rgba(245,168,0,.2);}
+.resend-link{text-align:center;margin-top:.8rem;font-size:.79rem;color:#888;}
+.resend-link button{background:none;border:none;color:#003B71;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;font-size:.79rem;padding:0;}
+.step-indicator{display:flex;align-items:center;justify-content:center;gap:.5rem;margin-bottom:1.5rem;}
+.step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;}
+.step-dot.active{background:#003B71;color:#fff;}
+.step-dot.done{background:#F5A800;color:#003B71;}
+.step-dot.inactive{background:#eee;color:#999;}
+.step-line{width:40px;height:2px;background:#eee;}
+.step-line.done{background:#F5A800;}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="brand">
+    <div class="brand-logo"><span>Code</span>Crafters</div>
+    <div class="brand-sub">DUT Student Ticketing System</div>
+  </div>
+
+  {% with messages=get_flashed_messages(with_categories=true) %}
+    {% for cat,msg in messages %}<div class="alert alert-{{cat}}"><i class="fas fa-{% if cat=='success' %}check-circle{% elif cat=='danger' %}exclamation-circle{% else %}info-circle{% endif %} me-2"></i>{{msg}}</div>{% endfor %}
+  {% endwith %}
+
+  <!-- Step Indicator -->
+  <div class="step-indicator">
+    <div class="step-dot {% if step=='details' %}active{% else %}done{% endif %}">
+      {% if step=='verify' %}<i class="fas fa-check" style="font-size:.65rem"></i>{% else %}1{% endif %}
+    </div>
+    <div class="step-line {% if step=='verify' %}done{% endif %}"></div>
+    <div class="step-dot {% if step=='verify' %}active{% else %}inactive{% endif %}">2</div>
+  </div>
+
+  {% if step == 'details' %}
+  <!-- ── STEP 1: Registration Details ── -->
+  <h2>Create account</h2>
+  <p class="sub">Step 1 of 2 — Fill in your details</p>
+  <form method="POST">
+    <input type="hidden" name="step" value="details">
+    <div class="row g-3">
+      <div class="col-12">
+        <label class="form-label">Full Name <span style="color:#003B71">*</span></label>
+        <input type="text" name="full_name" class="form-control" placeholder="e.g. Sipho Dlamini" value="{{ v.name }}" required>
+      </div>
+      <div class="col-12">
+        <label class="form-label">Email Address <span style="color:#003B71">*</span></label>
+        <input type="email" name="email" class="form-control" id="emailInput" placeholder="yourname@gmail.com or yourname@dut4life.ac.za" value="{{ v.email }}" required oninput="chkEmail(this.value)">
+        <div class="form-text" id="emailHint"><i class="fas fa-envelope me-1"></i>Must be @gmail.com or @dut4life.ac.za</div>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Student Number</label>
+        <input type="text" name="student_no" class="form-control" id="snoInput" placeholder="e.g. 21234567" value="{{ v.sno }}" maxlength="8" oninput="chkSno(this.value)">
+        <div class="form-text" id="snoHint"><i class="fas fa-id-card me-1"></i>8 digits, must start with 2</div>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Phone Number <span style="color:#003B71">*</span></label>
+        <input type="tel" name="phone" class="form-control" placeholder="e.g. 0821234567" value="{{ v.phone }}" required>
+        <div class="form-text"><i class="fas fa-sms me-1"></i>OTP will be sent here</div>
+      </div>
+      <div class="col-12">
+        <label class="form-label">Password <span style="color:#003B71">*</span></label>
+        <div style="position:relative">
+          <input type="password" name="password" class="form-control" id="pw" placeholder="Min 8 characters" required oninput="chkPw(this.value)" style="padding-right:2.5rem">
+          <span onclick="togglePw('pw','eyePw')" style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);cursor:pointer;color:#888;font-size:.85rem"><i class="fas fa-eye" id="eyePw"></i></span>
+        </div>
+        <div class="pw-bar" id="pwBar"></div>
+        <!-- Password requirements checklist -->
+        <div id="pwChecklist" style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:3px 10px;">
+          <div class="pw-req" id="req-len"><i class="fas fa-circle me-1" style="font-size:.5rem"></i><span style="font-size:.71rem">At least 8 characters</span></div>
+          <div class="pw-req" id="req-upper"><i class="fas fa-circle me-1" style="font-size:.5rem"></i><span style="font-size:.71rem">Uppercase letter (A-Z)</span></div>
+          <div class="pw-req" id="req-lower"><i class="fas fa-circle me-1" style="font-size:.5rem"></i><span style="font-size:.71rem">Lowercase letter (a-z)</span></div>
+          <div class="pw-req" id="req-num"><i class="fas fa-circle me-1" style="font-size:.5rem"></i><span style="font-size:.71rem">Number (0-9)</span></div>
+          <div class="pw-req" id="req-special"><i class="fas fa-circle me-1" style="font-size:.5rem"></i><span style="font-size:.71rem">Special character (!@#$…)</span></div>
+        </div>
+      </div>
+      <div class="col-12">
+        <label class="form-label">Confirm Password <span style="color:#003B71">*</span></label>
+        <div style="position:relative">
+          <input type="password" name="confirm_password" class="form-control" id="cpw" placeholder="Repeat password" required oninput="chkMatch()" style="padding-right:2.5rem">
+          <span onclick="togglePw('cpw','eyeCpw')" style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);cursor:pointer;color:#888;font-size:.85rem"><i class="fas fa-eye" id="eyeCpw"></i></span>
+        </div>
+        <div class="form-text" id="matchHint" style="margin-top:4px"></div>
+      </div>
+    </div>
+    <div class="popia-box"><i class="fas fa-shield-alt me-1" style="color:#003B71"></i><strong>POPIA Notice:</strong> Your information is collected solely for grievance management and handled in compliance with the Protection of Personal Information Act.</div>
+    <button type="submit" class="btn-submit"><i class="fas fa-paper-plane me-2"></i>Send OTP & Continue</button>
+  </form>
+
+  {% elif step == 'verify' %}
+  <!-- ── STEP 2: OTP Verification ── -->
+  <h2>Verify your account</h2>
+  <p class="sub">Step 2 of 2 — Enter your OTP</p>
+  <div class="otp-info">
+    <div class="otp-icon"><i class="fas fa-shield-check"></i></div>
+    <p>We sent a 6-digit OTP to<br>
+      <strong>{{ v.email }}</strong> and <strong>{{ v.phone }}</strong></p>
+    <p style="margin-top:6px;font-size:.75rem;color:#888">Valid for 10 minutes</p>
+  </div>
+  <form method="POST">
+    <input type="hidden" name="step" value="verify">
+    <div class="mb-3">
+      <label class="form-label text-center d-block">Enter 6-digit OTP</label>
+      <input type="text" name="otp" class="form-control otp-input" maxlength="6" placeholder="000000" autofocus autocomplete="one-time-code" required>
+    </div>
+    <button type="submit" class="btn-submit"><i class="fas fa-check-circle me-2"></i>Verify & Create Account</button>
+  </form>
+  <div class="resend-link">
+    Didn't receive it?
+    <form method="POST" style="display:inline">
+      <input type="hidden" name="step" value="resend">
+      <button type="submit">Resend OTP</button>
+    </form>
+  </div>
+  {% endif %}
+
+  <div class="foot-link">Already have an account? <a href="{{ url_for('login') }}">Sign in</a></div>
+</div>
+<script>
+// ── Password strength & checklist ────────────────────────────────────────────
+function req(id, pass){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.classList.toggle('ok', pass);
+  const icon = el.querySelector('i');
+  if(icon){ icon.className = pass ? 'fas fa-check-circle me-1' : 'fas fa-circle me-1'; icon.style.fontSize = pass ? '.75rem' : '.5rem'; }
+}
+function chkPw(v){
+  const b = document.getElementById('pwBar');
+  const hasLen     = v.length >= 8;
+  const hasUpper   = /[A-Z]/.test(v);
+  const hasLower   = /[a-z]/.test(v);
+  const hasNum     = /[0-9]/.test(v);
+  const hasSpecial = /[^A-Za-z0-9]/.test(v);
+  req('req-len',     hasLen);
+  req('req-upper',   hasUpper);
+  req('req-lower',   hasLower);
+  req('req-num',     hasNum);
+  req('req-special', hasSpecial);
+  const score = [hasLen, hasUpper, hasLower, hasNum, hasSpecial].filter(Boolean).length;
+  const cols  = ['#eee','#e65100','#e65100','#F5A800','#2e7d32','#003B71'];
+  if(b){ b.style.background = cols[score]; b.style.width = (score * 20) + '%'; }
+  chkMatch();
+}
+// ── Confirm password match ───────────────────────────────────────────────────
+function chkMatch(){
+  const pw = document.getElementById('pw');
+  const cp = document.getElementById('cpw');
+  const hint = document.getElementById('matchHint');
+  if(!cp || !hint || !cp.value) { if(hint) hint.textContent=''; return; }
+  const match = pw.value === cp.value;
+  hint.textContent = match ? '✓ Passwords match' : '✗ Passwords do not match';
+  hint.style.color = match ? '#2e7d32' : '#e65100';
+  hint.style.fontWeight = '600';
+}
+// ── Email domain validation ──────────────────────────────────────────────────
+function chkEmail(v){
+  const hint = document.getElementById('emailHint');
+  const inp  = document.getElementById('emailInput');
+  if(!v){ hint.textContent='Must be @gmail.com or @dut4life.ac.za'; hint.style.color='#888'; return; }
+  const ok = v.endsWith('@gmail.com') || v.endsWith('@dut4life.ac.za');
+  if(ok){
+    hint.innerHTML='<i class="fas fa-check-circle me-1"></i>Valid email domain';
+    hint.style.color='#2e7d32';
+    inp.style.borderColor='#2e7d32';
+  } else {
+    hint.innerHTML='<i class="fas fa-exclamation-circle me-1"></i>Must end with @gmail.com or @dut4life.ac.za';
+    hint.style.color='#e65100';
+    inp.style.borderColor='#e65100';
+  }
+}
+// ── Student number validation ────────────────────────────────────────────────
+function chkSno(v){
+  const hint = document.getElementById('snoHint');
+  const inp  = document.getElementById('snoInput');
+  // Only allow digits
+  inp.value = v.replace(/\D/g,'');
+  v = inp.value;
+  if(!v){ hint.innerHTML='<i class="fas fa-id-card me-1"></i>8 digits, must start with 2'; hint.style.color='#888'; inp.style.borderColor=''; return; }
+  const ok = /^2\d{7}$/.test(v);
+  if(ok){
+    hint.innerHTML='<i class="fas fa-check-circle me-1"></i>Valid student number';
+    hint.style.color='#2e7d32';
+    inp.style.borderColor='#2e7d32';
+  } else if(v.length > 0 && v[0] !== '2'){
+    hint.innerHTML='<i class="fas fa-exclamation-circle me-1"></i>Must start with 2';
+    hint.style.color='#e65100';
+    inp.style.borderColor='#e65100';
+  } else {
+    hint.innerHTML='<i class="fas fa-exclamation-circle me-1"></i>Must be exactly 8 digits starting with 2';
+    hint.style.color=v.length===8?'#e65100':'#888';
+    inp.style.borderColor=v.length===8?'#e65100':'';
+  }
+}
+// ── Show/hide password ───────────────────────────────────────────────────────
+function togglePw(fieldId, iconId){
+  const f = document.getElementById(fieldId);
+  const i = document.getElementById(iconId);
+  if(!f) return;
+  if(f.type==='password'){ f.type='text'; if(i) i.className='fas fa-eye-slash'; }
+  else { f.type='password'; if(i) i.className='fas fa-eye'; }
+}
+// ── Auto-submit OTP ──────────────────────────────────────────────────────────
+const otpInput = document.querySelector('.otp-input');
+if(otpInput){
+  otpInput.addEventListener('input', function(){
+    this.value = this.value.replace(/\D/g,'');
+    if(this.value.length === 6) this.closest('form').submit();
+  });
+}
+</script>
+</body>
+</html>

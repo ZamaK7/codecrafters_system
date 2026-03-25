@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — CodeCrafters{% endblock %}
+{% block page_title %}My <span>Dashboard</span>{% endblock %}
+{% block extra_css %}
+<style>
+.welcome-bar{background:linear-gradient(135deg,#003B71 60%,#002555 100%);color:#fff;border-radius:14px;padding:1.4rem 1.8rem;margin-bottom:1.4rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;}
+.welcome-bar h5{margin:0;font-size:1.15rem;font-weight:700;}
+.welcome-bar p{margin:0;font-size:.82rem;opacity:.75;}
+.stat-block{border-radius:13px;padding:1.1rem 1.3rem;color:#fff;display:flex;align-items:center;gap:1rem;height:100%;}
+.stat-block .sb-icon{width:52px;height:52px;border-radius:10px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
+.stat-block .sb-val{font-size:2rem;font-weight:800;line-height:1;font-family:'JetBrains Mono',monospace;}
+.stat-block .sb-lbl{font-size:.72rem;font-weight:600;opacity:.85;text-transform:uppercase;letter-spacing:.05em;margin-top:2px;}
+.ticket-row{display:flex;align-items:center;padding:.85rem 1rem;border-bottom:1px solid var(--border);gap:.8rem;transition:background .15s;}
+.ticket-row:last-child{border-bottom:none;}
+.ticket-row:hover{background:#f7f9fc;}
+.ticket-tno{font-family:'JetBrains Mono',monospace;font-size:.78rem;font-weight:700;color:#003B71;background:#eef2f8;padding:2px 8px;border-radius:5px;white-space:nowrap;}
+.ticket-subj{font-size:.85rem;font-weight:600;color:var(--text);}
+.ticket-dept{font-size:.74rem;color:var(--muted);}
+.prog-wrap{width:90px;flex-shrink:0;}
+.prog-bar{height:6px;border-radius:3px;background:var(--border);overflow:hidden;}
+.prog-fill{height:100%;border-radius:3px;}
+.qa-btn{display:flex;align-items:center;gap:10px;padding:.7rem 1rem;border-radius:9px;border:1.5px solid var(--border);background:#fff;color:var(--text);text-decoration:none;font-size:.84rem;font-weight:600;transition:all .15s;margin-bottom:.5rem;}
+.qa-btn:hover{border-color:#003B71;color:#003B71;background:#f0f4fb;}
+.qa-btn .qa-ic{width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;}
+.qa-btn-primary{background:#003B71;color:#fff;border-color:#003B71;}
+.qa-btn-primary:hover{background:#002555;color:#fff;border-color:#002555;}
+.notif-item{padding:.75rem 1rem;border-bottom:1px solid var(--border);}
+.notif-item:last-child{border-bottom:none;}
+.status-legend{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:.8rem;}
+.leg-dot{width:11px;height:11px;border-radius:3px;flex-shrink:0;}
+</style>
+{% endblock %}
+{% block content %}
+
+<div class="welcome-bar">
+  <div>
+    <h5><i class="fas fa-tachometer-alt me-2" style="color:#F5A800"></i>Welcome, {{ cu['full_name'].split()[0] }},</h5>
+    <p>Here's an overview of your grievance tickets.</p>
+  </div>
+  <a href="{{ url_for('submit_ticket') }}" class="btn btn-sm" style="background:#F5A800;color:#003B71;font-weight:700;border-radius:9px;padding:.5rem 1.2rem;">
+    <i class="fas fa-plus me-1"></i>Submit New Ticket
+  </a>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-block" style="background:linear-gradient(135deg,#003B71,#1a5fa8)">
+      <div class="sb-icon"><i class="fas fa-inbox"></i></div>
+      <div><div class="sb-val">{{ stats.total }}</div><div class="sb-lbl">Open Tickets</div></div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-block" style="background:linear-gradient(135deg,#2e7d32,#43a047)">
+      <div class="sb-icon"><i class="fas fa-spinner"></i></div>
+      <div><div class="sb-val">{{ stats.in_progress }}</div><div class="sb-lbl">In Progress</div></div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-block" style="background:linear-gradient(135deg,#757575,#9e9e9e)">
+      <div class="sb-icon"><i class="fas fa-check-circle"></i></div>
+      <div><div class="sb-val">{{ stats.resolved }}</div><div class="sb-lbl">Resolved</div></div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-block" style="background:linear-gradient(135deg,#e65100,#f57c00)">
+      <div class="sb-icon"><i class="fas fa-exclamation-triangle"></i></div>
+      <div><div class="sb-val">{{ stats.pending }}</div><div class="sb-lbl">Pending</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card mb-3">
+      <div class="card-head">
+        <h6><i class="fas fa-ticket-alt me-2" style="color:#003B71"></i>My Tickets</h6>
+        <a href="{{ url_for('my_tickets') }}" class="btn btn-sm btn-outline-primary">View All</a>
+      </div>
+      <div class="card-body p-0">
+        {% if tickets %}
+          {% for t in tickets[:6] %}
+          {% set prog = 25 if t['status']=='Pending' else 50 if t['status']=='Assigned' else 75 if t['status']=='In Progress' else 100 if t['status'] in ('Resolved','Closed') else 25 %}
+          {% set pcol = '#F5A800' if t['status']=='Pending' else '#003B71' if t['status']=='Assigned' else '#1260a3' if t['status']=='In Progress' else '#2e7d32' if t['status'] in ('Resolved','Closed') else '#9e9e9e' %}
+          <a href="{{ url_for('view_ticket', tno=t['ticket_no']) }}" class="ticket-row text-decoration-none d-flex">
+            <span class="ticket-tno">{{ t['ticket_no'] }}</span>
+            <div style="flex:1;min-width:0;margin:0 .6rem">
+              <div class="ticket-subj">{{ t['subject'][:42] }}{% if t['subject']|length>42 %}…{% endif %}</div>
+              <div class="ticket-dept">{{ t['dept_name'] }}</div>
+            </div>
+            <span class="st-badge st-{{ t['status'].replace(' ','-') }} me-2">{{ t['status'] }}</span>
+            <div class="prog-wrap">
+              <div class="prog-bar"><div class="prog-fill" style="width:{{prog}}%;background:{{pcol}}"></div></div>
+            </div>
+            <i class="fas fa-chevron-right ms-2" style="font-size:.7rem;color:var(--muted)"></i>
+          </a>
+          {% endfor %}
+        {% else %}
+        <div class="empty-st">
+          <i class="fas fa-inbox d-block"></i>
+          <p style="font-size:.88rem">No tickets yet</p>
+          <a href="{{ url_for('submit_ticket') }}" class="btn btn-primary btn-sm">Submit your first ticket</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h6><i class="fas fa-chart-bar me-2" style="color:#003B71"></i>Ticket Status</h6></div>
+      <div class="card-body">
+        {% set total = stats.total if stats.total > 0 else 1 %}
+        <div style="height:18px;border-radius:9px;overflow:hidden;display:flex;gap:2px">
+          <div style="width:{{ [((stats.in_progress/total)*100)|round|int, 5]|max }}%;background:#003B71;transition:width .4s"></div>
+          <div style="width:{{ [((stats.pending/total)*100)|round|int, 5]|max }}%;background:#F5A800;transition:width .4s"></div>
+          <div style="width:{{ [((stats.resolved/total)*100)|round|int, 5]|max }}%;background:#757575;transition:width .4s"></div>
+          <div style="flex:1;background:#e65100"></div>
+        </div>
+        <div class="status-legend">
+          <div class="d-flex align-items-center gap-1"><div class="leg-dot" style="background:#003B71"></div><span style="font-size:.74rem">In Progress</span></div>
+          <div class="d-flex align-items-center gap-1"><div class="leg-dot" style="background:#F5A800"></div><span style="font-size:.74rem">Pending</span></div>
+          <div class="d-flex align-items-center gap-1"><div class="leg-dot" style="background:#757575"></div><span style="font-size:.74rem">Resolved</span></div>
+          <div class="d-flex align-items-center gap-1"><div class="leg-dot" style="background:#e65100"></div><span style="font-size:.74rem">Escalated</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card mb-3">
+      <div class="card-head"><h6><i class="fas fa-bolt me-2" style="color:#003B71"></i>Quick Actions</h6></div>
+      <div class="card-body">
+        <a href="{{ url_for('submit_ticket') }}" class="qa-btn qa-btn-primary">
+          <div class="qa-ic" style="background:rgba(255,255,255,.2)"><i class="fas fa-plus"></i></div>Submit New Ticket
+        </a>
+        <a href="{{ url_for('my_tickets') }}" class="qa-btn">
+          <div class="qa-ic" style="background:#eef2f8;color:#003B71"><i class="fas fa-search"></i></div>Track a Ticket
+        </a>
+        <a href="{{ url_for('profile') }}" class="qa-btn">
+          <div class="qa-ic" style="background:#eef2f8;color:#003B71"><i class="fas fa-user-cog"></i></div>Update Profile
+        </a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h6><i class="fas fa-bell me-2" style="color:#003B71"></i>Recent Updates</h6>
+        {% if notifications %}<a href="{{ url_for('mark_all_read') }}" style="font-size:.73rem;color:var(--muted);text-decoration:none">Mark all read</a>{% endif %}
+      </div>
+      <div class="card-body p-0">
+        {% if notifications %}
+          {% for n in notifications[:5] %}
+          <div class="notif-item">
+            <div style="display:flex;gap:8px;align-items:flex-start">
+              <div style="width:8px;height:8px;border-radius:50%;background:{% if not n['is_read'] %}#F5A800{% else %}var(--border){% endif %};flex-shrink:0;margin-top:5px"></div>
+              <div>
+                <div style="font-size:.81rem;font-weight:{% if not n['is_read'] %}600{% else %}400{% endif %}">{{ n['title'] }}</div>
+                <div style="font-size:.75rem;color:var(--muted);margin-top:2px">{{ n['message'][:65] }}{% if n['message']|length>65 %}…{% endif %}</div>
+                <div style="font-size:.67rem;color:var(--muted);margin-top:2px">{{ n['created_at'][:16] }}</div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+        <div class="empty-st py-3"><i class="fas fa-bell-slash d-block" style="font-size:1.4rem"></i><span style="font-size:.82rem">All caught up!</span></div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

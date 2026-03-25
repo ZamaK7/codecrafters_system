@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% block title %}Departments — CodeCrafters{% endblock %}
+{% block page_title %}Manage <span>Departments</span>{% endblock %}
+{% block extra_css %}
+<style>
+.dept-card{background:#fff;border:1px solid var(--border);border-radius:13px;margin-bottom:1.2rem;overflow:hidden;}
+.dept-header{background:linear-gradient(135deg,#003B71,#1a5fa8);color:#fff;padding:1rem 1.3rem;display:flex;align-items:center;justify-content:space-between;}
+.dept-header h6{margin:0;font-size:.95rem;font-weight:700;}
+.dept-badge{background:rgba(255,255,255,.2);color:#fff;font-size:.7rem;padding:2px 10px;border-radius:20px;font-weight:600;}
+.dept-body{padding:1rem 1.3rem;}
+.staff-row{display:flex;align-items:center;gap:.7rem;padding:.5rem .7rem;border-radius:8px;background:#f7f9fc;margin-bottom:.4rem;}
+.staff-av{width:30px;height:30px;border-radius:50%;background:#003B71;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;flex-shrink:0;}
+.staff-name{font-size:.83rem;font-weight:600;flex:1;}
+.staff-email{font-size:.72rem;color:var(--muted);}
+.empty-dept{text-align:center;padding:1rem;color:var(--muted);font-size:.82rem;}
+.empty-dept i{display:block;font-size:1.4rem;margin-bottom:.4rem;opacity:.3;}
+</style>
+{% endblock %}
+{% block content %}
+
+<div class="row g-4">
+  <!-- Left: Departments list with staff -->
+  <div class="col-lg-8">
+
+    <!-- Unassigned Staff Alert -->
+    {% if unassigned_staff %}
+    <div class="alert alert-warning d-flex align-items-center gap-2 mb-3">
+      <i class="fas fa-exclamation-triangle"></i>
+      <strong>{{ unassigned_staff|length }} staff member(s)</strong> have no department assigned.
+      <a href="#assignPanel" class="ms-auto btn btn-sm btn-warning" style="border-radius:6px;color:#003B71;font-weight:700">Assign Now ↓</a>
+    </div>
+    {% endif %}
+
+    {% for d in departments %}
+    <div class="dept-card">
+      <div class="dept-header">
+        <div>
+          <h6><i class="fas fa-building me-2"></i>{{ d['name'] }}</h6>
+          <div style="font-size:.72rem;opacity:.7;margin-top:2px">{{ d['email'] or '—' }}</div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <span class="dept-badge">{{ (dept_staff[d['id']]|length) }} staff</span>
+          <span class="dept-badge" style="background:rgba(245,168,0,.3)">{{ d['cnt'] }} tickets</span>
+        </div>
+      </div>
+      <div class="dept-body">
+        {% if dept_staff[d['id']] %}
+          {% for s in dept_staff[d['id']] %}
+          <div class="staff-row">
+            <div class="staff-av">{{ s['full_name'][:2].upper() }}</div>
+            <div style="flex:1">
+              <div class="staff-name">{{ s['full_name'] }}</div>
+              <div class="staff-email">{{ s['email'] }}</div>
+            </div>
+            {% if cu['role'] == 'superadmin' %}
+            <form method="POST" style="margin:0" onsubmit="return confirm('Remove {{ s['full_name'] }} from this department?')">
+              <input type="hidden" name="action" value="remove_staff">
+              <input type="hidden" name="user_id" value="{{ s['id'] }}">
+              <button type="submit" class="btn btn-sm" style="background:#fff0f0;color:#c0392b;border:1px solid #ffd0d0;border-radius:6px;font-size:.72rem;">
+                <i class="fas fa-times"></i> Remove
+              </button>
+            </form>
+            {% endif %}
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-dept">
+            <i class="fas fa-user-slash"></i>No staff assigned to this department
+          </div>
+        {% endif %}
+
+        <!-- Quick assign form within dept card -->
+        {% if cu['role'] == 'superadmin' and unassigned_staff %}
+        <div class="mt-2">
+          <form method="POST" class="d-flex gap-2 align-items-center">
+            <input type="hidden" name="action" value="assign_staff">
+            <input type="hidden" name="dept_id" value="{{ d['id'] }}">
+            <select name="user_id" class="form-select form-select-sm" style="font-size:.78rem">
+              <option value="">— Assign unassigned staff —</option>
+              {% for s in unassigned_staff %}
+              <option value="{{ s['id'] }}">{{ s['full_name'] }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-sm btn-primary" style="white-space:nowrap"><i class="fas fa-plus me-1"></i>Assign</button>
+          </form>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Right: Add dept + Assign unassigned panel -->
+  <div class="col-lg-4">
+
+    <!-- Add Department -->
+    {% if cu['role'] == 'superadmin' %}
+    <div class="card mb-3">
+      <div class="card-head"><h6><i class="fas fa-plus-circle me-2" style="color:#003B71"></i>Add Department</h6></div>
+      <div class="card-body">
+        <form method="POST">
+          <input type="hidden" name="action" value="add_dept">
+          <div class="mb-2">
+            <label class="form-label">Department Name *</label>
+            <input type="text" name="name" class="form-control form-control-sm" placeholder="e.g. Bursaries" required>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Department Email</label>
+            <input type="email" name="email" class="form-control form-control-sm" placeholder="dept@dut.ac.za">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Head / Description</label>
+            <input type="text" name="head" class="form-control form-control-sm" placeholder="e.g. Bursaries Office">
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm w-100"><i class="fas fa-plus me-1"></i>Add Department</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Unassigned Staff Panel -->
+    <div class="card" id="assignPanel">
+      <div class="card-head"><h6><i class="fas fa-user-clock me-2" style="color:#e65100"></i>Unassigned Staff</h6></div>
+      <div class="card-body p-0">
+        {% if unassigned_staff %}
+          {% for s in unassigned_staff %}
+          <div class="d-flex align-items-center gap-2 p-3" style="border-bottom:1px solid var(--border)">
+            <div style="width:30px;height:30px;border-radius:50%;background:#e65100;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;flex-shrink:0">{{ s['full_name'][:2].upper() }}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:.82rem;font-weight:600">{{ s['full_name'] }}</div>
+              <div style="font-size:.71rem;color:var(--muted)">{{ s['email'] }}</div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-st py-3">
+            <i class="fas fa-check-circle d-block" style="font-size:1.5rem;color:#2e7d32;opacity:.6"></i>
+            <span style="font-size:.82rem">All staff are assigned!</span>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="card mt-3">
+      <div class="card-head"><h6><i class="fas fa-chart-pie me-2" style="color:#003B71"></i>Summary</h6></div>
+      <div class="card-body">
+        <div class="d-flex justify-content-between py-2" style="border-bottom:1px solid var(--border)">
+          <span style="font-size:.83rem;color:var(--muted)">Total Departments</span>
+          <strong style="color:#003B71">{{ departments|length }}</strong>
+        </div>
+        <div class="d-flex justify-content-between py-2" style="border-bottom:1px solid var(--border)">
+          <span style="font-size:.83rem;color:var(--muted)">Total Staff</span>
+          <strong style="color:#003B71">{% set total_staff = namespace(count=0) %}{% for staff_list in dept_staff.values() %}{% set total_staff.count = total_staff.count + staff_list|length %}{% endfor %}{{ total_staff.count }}</strong>
+        </div>
+        <div class="d-flex justify-content-between py-2">
+          <span style="font-size:.83rem;color:var(--muted)">Unassigned Staff</span>
+          <strong style="color:{% if unassigned_staff %}#e65100{% else %}#2e7d32{% endif %}">{{ unassigned_staff|length }}</strong>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% block title %}Tickets — CodeCrafters{% endblock %}
+{% block page_title %}Manage <span>Tickets</span>{% endblock %}
+{% block content %}
+<div class="card mb-3">
+  <div class="card-body py-3">
+    <form method="GET" class="row g-2 align-items-end">
+      <input type="hidden" name="sort" value="{{ sort }}">
+      <div class="col-md-3"><input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="Ticket no, subject or student name…"></div>
+      <div class="col-md-2">
+        <select name="status" class="form-select form-select-sm">
+          <option value="">All Statuses</option>
+          {% for s in ['Pending','In Progress','Assigned','Resolved','Closed'] %}
+          <option value="{{ s }}" {% if status==s %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select name="priority" class="form-select form-select-sm">
+          <option value="">All Priorities</option>
+          {% for p in ['Urgent','High','Medium','Low'] %}
+          <option value="{{ p }}" {% if priority==p %}selected{% endif %}>{{ p }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select name="dept" class="form-select form-select-sm">
+          <option value="">All Departments</option>
+          {% for d in departments %}
+          <option value="{{ d['id'] }}" {% if dept_id==d['id']|string %}selected{% endif %}>{{ d['name'] }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-1">
+        <select name="assigned" class="form-select form-select-sm">
+          <option value="">All</option>
+          <option value="me" {% if assigned=='me' %}selected{% endif %}>Mine</option>
+          <option value="unassigned" {% if assigned=='unassigned' %}selected{% endif %}>Unassigned</option>
+        </select>
+      </div>
+      <div class="col-md-2 d-flex gap-1">
+        <button type="submit" class="btn btn-primary btn-sm flex-fill">Filter</button>
+        <a href="{{ url_for('admin_tickets') }}" class="btn btn-outline-secondary btn-sm">✕</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-head">
+    <h6><i class="fas fa-ticket-alt me-2" style="color:#003B71"></i>Tickets
+      <span style="font-size:.79rem;font-weight:400;color:var(--muted)">({{ tickets|length }})</span>
+    </h6>
+    <!-- Sort toggle -->
+    <div class="d-flex align-items-center gap-2">
+      <span style="font-size:.72rem;color:var(--muted);font-weight:600">Sort:</span>
+      <a href="{{ url_for('admin_tickets', q=q, status=status, priority=priority, dept=dept_id, assigned=assigned, sort='fcfs') }}"
+         class="btn btn-sm {% if sort=='fcfs' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+         style="font-size:.72rem;padding:3px 10px;border-radius:6px">
+        <i class="fas fa-sort-amount-up me-1"></i>First Come First Serve
+      </a>
+      <a href="{{ url_for('admin_tickets', q=q, status=status, priority=priority, dept=dept_id, assigned=assigned, sort='priority') }}"
+         class="btn btn-sm {% if sort=='priority' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+         style="font-size:.72rem;padding:3px 10px;border-radius:6px">
+        <i class="fas fa-exclamation-circle me-1"></i>Priority
+      </a>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    {% if tickets %}
+    <!-- FCFS info banner -->
+    {% if sort == 'fcfs' %}
+    <div style="background:#eef2f8;border-bottom:1px solid var(--border);padding:.5rem 1rem;font-size:.75rem;color:#003B71;display:flex;align-items:center;gap:.5rem;">
+      <i class="fas fa-info-circle"></i>
+      Tickets are ordered by <strong>submission time</strong> — oldest unresolved tickets appear first. Resolved tickets are shown at the bottom.
+    </div>
+    {% endif %}
+    <div class="table-responsive">
+      <table class="table mb-0">
+        <thead><tr>
+          {% if sort == 'fcfs' %}<th style="width:48px">#</th>{% endif %}
+          <th>Ticket No</th><th>Student</th><th>Department</th><th>Subject</th><th>Priority</th><th>Status</th><th>Assigned</th><th>Submitted</th><th></th>
+        </tr></thead>
+        <tbody>
+        {% set active_count = namespace(n=0) %}
+        {% for t in tickets %}
+        {% if t['status'] not in ('Resolved','Closed') %}{% set active_count.n = active_count.n + 1 %}{% endif %}
+        <tr {% if t['status'] in ('Resolved','Closed') %}style="opacity:.6"{% endif %}>
+          {% if sort == 'fcfs' %}
+          <td>
+            {% if t['status'] not in ('Resolved','Closed') %}
+            <span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:{% if loop.index<=3 %}#003B71{% else %}#eef2f8{% endif %};color:{% if loop.index<=3 %}#fff{% else %}#003B71{% endif %};font-size:.72rem;font-weight:800;font-family:'JetBrains Mono',monospace;">{{ loop.index }}</span>
+            {% else %}
+            <span style="font-size:.7rem;color:var(--muted)">—</span>
+            {% endif %}
+          </td>
+          {% endif %}
+          <td><span class="tno">{{ t['ticket_no'] }}</span></td>
+          <td>
+            {% if t['is_anonymous'] %}<span style="font-size:.78rem;color:var(--muted)"><i class="fas fa-user-secret me-1"></i>Anon</span>
+            {% else %}
+            <div style="font-size:.83rem;font-weight:500">{{ t['student_name'] }}</div>
+            {% if t['student_no'] %}<div style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--muted)">{{ t['student_no'] }}</div>{% endif %}
+            {% endif %}
+          </td>
+          <td><span style="font-size:.77rem;color:var(--muted)">{{ t['dept_name'] }}</span></td>
+          <td style="max-width:160px"><span style="font-size:.83rem">{{ t['subject'][:35] }}{% if t['subject']|length>35 %}…{% endif %}</span></td>
+          <td><span class="st-badge pr-{{ t['priority'] }}">{{ t['priority'] }}</span></td>
+          <td><span class="st-badge st-{{ t['status'].replace(' ','-') }}">{{ t['status'] }}</span></td>
+          <td>
+            {% if t['assignee_name'] %}<span style="font-size:.78rem">{{ t['assignee_name'].split()[0] }}</span>
+            {% else %}<span style="font-size:.75rem;color:var(--muted);font-style:italic">Unassigned</span>{% endif %}
+          </td>
+          <td>
+            <span style="font-size:.74rem;color:var(--muted)">{{ t['created_at'][:10] }}</span>
+            {% if sort=='fcfs' and t['status'] not in ('Resolved','Closed') %}
+            <div style="font-size:.65rem;color:var(--muted)">{{ t['created_at'][11:16] }}</div>
+            {% endif %}
+          </td>
+          <td><a href="{{ url_for('admin_view_ticket', tno=t['ticket_no']) }}" class="btn btn-primary btn-sm">Manage</a></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-st"><i class="fas fa-search d-block"></i><p style="font-size:.88rem">No tickets match your filters</p></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sign In — CodeCrafters</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<style>
+*{box-sizing:border-box;}
+body{font-family:'Sora',sans-serif;background:#001d3d;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 65% 55% at 50% 50%,rgba(0,59,113,.11) 0%,transparent 70%);pointer-events:none;}
+.card{width:100%;max-width:400px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:2.4rem;position:relative;z-index:1;}
+.brand{text-align:center;margin-bottom:1.9rem;}
+.brand-logo{font-size:1.45rem;font-weight:800;color:#fff;letter-spacing:-.03em;}.brand-logo span{color:#003B71;}
+.brand-sub{font-size:.7rem;color:rgba(255,255,255,.32);margin-top:3px;}
+h2{font-size:1.3rem;font-weight:700;color:#fff;margin-bottom:.25rem;}
+.sub{font-size:.8rem;color:rgba(255,255,255,.38);margin-bottom:1.6rem;}
+.form-label{font-size:.78rem;font-weight:600;color:rgba(255,255,255,.65);margin-bottom:4px;}
+.form-control{background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.09);color:#fff;border-radius:9px;padding:.65rem .9rem;font-size:.86rem;font-family:'Sora',sans-serif;transition:all .15s;}
+.form-control:focus{background:rgba(255,255,255,.09);border-color:#003B71;color:#fff;box-shadow:0 0 0 3px rgba(0,59,113,.14);}
+.form-control::placeholder{color:rgba(255,255,255,.18);}
+.igt{background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.09);color:rgba(255,255,255,.38);border-radius:9px 0 0 9px;padding:.65rem .85rem;}
+.igt+.form-control{border-left:none;border-radius:0 9px 9px 0;}
+.eye-btn{background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.09);color:rgba(255,255,255,.38);border-left:none;border-radius:0 9px 9px 0;cursor:pointer;padding:.65rem .85rem;transition:all .15s;}
+.eye-btn:hover{color:#fff;}
+.form-check-label{font-size:.78rem;color:rgba(255,255,255,.45);}
+.form-check-input:checked{background-color:#003B71;border-color:#003B71;}
+.btn-submit{width:100%;background:#003B71;border:none;color:#fff;font-weight:700;font-size:.88rem;padding:.78rem;border-radius:9px;font-family:'Sora',sans-serif;transition:all .15s;cursor:pointer;margin-top:.4rem;}
+.btn-submit:hover{background:#002555;transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,59,113,.38);}
+.foot-link{text-align:center;margin-top:1.3rem;font-size:.8rem;color:rgba(255,255,255,.38);}
+.foot-link a{color:#003B71;text-decoration:none;font-weight:600;}.foot-link a:hover{color:#ff4444;}
+.alert{border-radius:9px;border:none;font-size:.8rem;font-weight:500;margin-bottom:1rem;}
+.alert-danger{background:rgba(0,59,113,.14);color:#F5A800;}
+.alert-success{background:rgba(21,122,58,.14);color:#4dca7a;}
+.alert-info{background:rgba(26,96,163,.14);color:#5bb8f5;}
+.alert-warning{background:rgba(184,98,10,.14);color:#f59e4b;}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="brand">
+    <div class="brand-logo"><span>Code</span>Crafters</div>
+    <div class="brand-sub">DUT Student Ticketing System</div>
+  </div>
+  {% with messages=get_flashed_messages(with_categories=true) %}
+    {% for cat,msg in messages %}<div class="alert alert-{{cat}}">{{msg}}</div>{% endfor %}
+  {% endwith %}
+  <h2>Sign in</h2>
+  <p class="sub">Access your ticketing portal</p>
+  <form method="POST">
+    <div class="mb-3">
+      <label class="form-label">Email Address</label>
+      <div class="input-group">
+        <span class="igt"><i class="fas fa-envelope" style="font-size:.82rem"></i></span>
+        <input type="email" name="email" class="form-control" placeholder="you@dut4life.ac.za" required>
+      </div>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Password</label>
+      <div class="input-group">
+        <span class="igt"><i class="fas fa-lock" style="font-size:.82rem"></i></span>
+        <input type="password" name="password" id="pw" class="form-control" placeholder="••••••••" required>
+        <button type="button" class="eye-btn" onclick="togglePw()"><i class="fas fa-eye" id="pwEye" style="font-size:.82rem"></i></button>
+      </div>
+    </div>
+    <div class="mb-3 d-flex justify-content-between align-items-center">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" name="remember" id="rem">
+        <label class="form-check-label" for="rem">Remember me</label>
+      </div>
+    </div>
+    <button type="submit" class="btn-submit"><i class="fas fa-sign-in-alt me-2"></i>Sign In</button>
+  </form>
+  <div class="foot-link">Don't have an account? <a href="{{ url_for('register') }}">Register here</a></div>
+  <div class="foot-link mt-1"><a href="{{ url_for('index') }}" style="color:rgba(255,255,255,.25)"><i class="fas fa-arrow-left me-1"></i>Back to home</a></div>
+</div>
+<script>
+function togglePw(){const f=document.getElementById('pw'),e=document.getElementById('pwEye');f.type=f.type==='password'?'text':'password';e.className=f.type==='password'?'fas fa-eye':'fas fa-eye-slash';}
+</script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% block title %}Weekly Report — CodeCrafters{% endblock %}
+{% block page_title %}Weekly <span>PDF Report</span>{% endblock %}
+{% block extra_css %}
+<style>
+.week-card{background:#fff;border:2px solid var(--border);border-radius:13px;padding:1.1rem 1.3rem;margin-bottom:.8rem;display:flex;align-items:center;gap:1rem;transition:all .18s;cursor:pointer;}
+.week-card:hover{border-color:#003B71;box-shadow:0 4px 14px rgba(0,59,113,.1);transform:translateY(-1px);}
+.week-card.current{border-color:#F5A800;background:#fffde7;}
+.week-label{font-size:.95rem;font-weight:700;color:#003B71;flex:1;}
+.week-meta{font-size:.75rem;color:var(--muted);}
+.stat-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:600;margin-right:5px;}
+.download-btn{background:#003B71;color:#fff;border:none;border-radius:8px;padding:.5rem 1.1rem;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.4rem;transition:all .15s;}
+.download-btn:hover{background:#002555;transform:translateY(-1px);}
+.preview-box{background:linear-gradient(135deg,#f8faff,#eef2f8);border:1px solid var(--border);border-radius:12px;padding:1.4rem;margin-bottom:1.2rem;}
+</style>
+{% endblock %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-7">
+
+    <div class="preview-box">
+      <div style="display:flex;align-items:center;gap:.8rem;margin-bottom:.8rem">
+        <div style="width:44px;height:44px;background:#003B71;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i class="fas fa-file-pdf" style="color:#fff;font-size:1.2rem"></i>
+        </div>
+        <div>
+          <div style="font-weight:700;font-size:1rem;color:#003B71">DUT Weekly Ticket Report</div>
+          <div style="font-size:.78rem;color:var(--muted)">Professional PDF — Auto-generated from live data</div>
+        </div>
+      </div>
+      <div style="font-size:.83rem;color:#444;line-height:1.7">
+        The report includes:
+        <ul style="margin:.5rem 0 0 1rem;padding:0">
+          <li>Summary stats — opened, resolved, SLA breaches, average rating</li>
+          <li>Full table of resolved tickets with resolution time</li>
+          <li>Student who logged & staff who resolved each ticket</li>
+          <li>Star ratings + written student feedback quotes</li>
+          <li>Staff performance leaderboard with bar indicators</li>
+          <li>Open urgent/high-priority tickets needing attention</li>
+          <li>Department & priority breakdown charts</li>
+        </ul>
+      </div>
+    </div>
+
+    <h6 style="font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.8rem">Select Week to Report</h6>
+
+    {% for w in weeks %}
+    <div class="week-card {% if w.is_current %}current{% endif %}">
+      <div style="flex:1">
+        <div class="week-label">
+          {% if w.is_current %}<span style="background:#F5A800;color:#003B71;font-size:.63rem;padding:2px 7px;border-radius:10px;font-weight:700;margin-right:6px">CURRENT</span>{% endif %}
+          {{ w.label }}
+        </div>
+        <div class="week-meta mt-1">
+          <span class="stat-chip" style="background:#eef2f8;color:#003B71"><i class="fas fa-ticket-alt me-1"></i>{{ w.opened }} opened</span>
+          <span class="stat-chip" style="background:#e8f5e9;color:#2e7d32"><i class="fas fa-check-circle me-1"></i>{{ w.resolved }} resolved</span>
+          {% if w.resolved == 0 %}<span style="font-size:.72rem;color:var(--muted);font-style:italic">No resolved tickets this week</span>{% endif %}
+        </div>
+      </div>
+      <a href="{{ url_for('download_weekly_report', week=w.offset) }}"
+         class="download-btn" {% if w.resolved == 0 and w.opened == 0 %}style="opacity:.45;pointer-events:none"{% endif %}>
+        <i class="fas fa-download"></i> Download PDF
+      </a>
+    </div>
+    {% endfor %}
+
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card">
+      <div class="card-head"><h6><i class="fas fa-eye me-2" style="color:#003B71"></i>Report Preview</h6></div>
+      <div class="card-body p-0">
+        <!-- Mock PDF preview -->
+        <div style="background:#e8edf5;padding:1rem;font-size:.72rem;color:#555;font-family:monospace;border-radius:0 0 12px 12px">
+          <div style="background:#003B71;color:#fff;padding:.5rem .8rem;border-radius:5px;margin-bottom:.5rem;font-family:sans-serif;font-size:.78rem;font-weight:700">
+            ████ CodeCrafters — DUT Student Ticketing System &nbsp;&nbsp; Weekly Report
+          </div>
+          <div style="background:#fff;border:1px solid #dde;border-radius:5px;padding:.7rem;margin-bottom:.4rem">
+            <div style="color:#003B71;font-weight:700;font-size:.82rem;font-family:sans-serif">Weekly Ticket Resolution Report</div>
+            <div style="color:#888;font-size:.7rem;font-family:sans-serif">Period: {selected week}</div>
+            <div style="height:4px;background:#F5A800;border-radius:2px;margin:.4rem 0"></div>
+            <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.4rem">
+              {% for label, col in [('Opened','#003B71'),('Resolved','#2e7d32'),('Still Open','#e65100'),('Urgent Open','#c0392b'),('SLA Breach','#c0392b'),('Avg Rating','#9a6200')] %}
+              <div style="background:#f5f7fa;border:1px solid #dde;border-radius:5px;padding:3px 8px;text-align:center;min-width:52px">
+                <div style="font-size:1rem;font-weight:800;color:{{ col }};font-family:sans-serif">##</div>
+                <div style="font-size:.6rem;color:#888;font-family:sans-serif">{{ label }}</div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          <div style="background:#fff;border:1px solid #dde;border-radius:5px;padding:.5rem;margin-bottom:.4rem">
+            <div style="background:#003B71;color:#fff;padding:2px 5px;font-family:sans-serif;font-size:.7rem;border-radius:3px;margin-bottom:.3rem;font-weight:700">RESOLVED TICKETS THIS WEEK</div>
+            <div style="display:grid;grid-template-columns:1fr 2fr 1fr 1fr 1fr;gap:2px;font-size:.65rem;font-family:sans-serif">
+              <div style="background:#003B71;color:#fff;padding:2px 4px">Ticket No</div>
+              <div style="background:#003B71;color:#fff;padding:2px 4px">Subject</div>
+              <div style="background:#003B71;color:#fff;padding:2px 4px">Student</div>
+              <div style="background:#003B71;color:#fff;padding:2px 4px">Resolved By</div>
+              <div style="background:#003B71;color:#fff;padding:2px 4px">Rating</div>
+              {% for _ in range(3) %}
+              <div style="background:#f5f7fa;padding:2px 4px;border-bottom:1px solid #eee">TKT-####</div>
+              <div style="background:#f5f7fa;padding:2px 4px;border-bottom:1px solid #eee">Lorem ipsum...</div>
+              <div style="background:#f5f7fa;padding:2px 4px;border-bottom:1px solid #eee">S. Dlamini</div>
+              <div style="background:#f5f7fa;padding:2px 4px;border-bottom:1px solid #eee">T. Nkosi</div>
+              <div style="background:#f5f7fa;padding:2px 4px;border-bottom:1px solid #eee;color:#f59e4b">★★★★☆</div>
+              {% endfor %}
+            </div>
+          </div>
+          <div style="background:#fff;border:1px solid #dde;border-radius:5px;padding:.5rem;margin-bottom:.4rem">
+            <div style="background:#003B71;color:#fff;padding:2px 5px;font-family:sans-serif;font-size:.7rem;border-radius:3px;margin-bottom:.3rem;font-weight:700">STUDENT FEEDBACK & RATINGS</div>
+            <div style="background:#fffde7;border-left:3px solid #F5A800;padding:.3rem .5rem;font-style:italic;font-size:.68rem;font-family:sans-serif;color:#555">"The issue was resolved quickly and professionally..."</div>
+          </div>
+          <div style="background:#fff;border:1px solid #dde;border-radius:5px;padding:.5rem">
+            <div style="background:#003B71;color:#fff;padding:2px 5px;font-family:sans-serif;font-size:.7rem;border-radius:3px;margin-bottom:.3rem;font-weight:700">STAFF PERFORMANCE — TOP RESOLVERS</div>
+            <div style="font-family:sans-serif;font-size:.68rem;color:#333">
+              🥇 T. Nkosi &nbsp;|&nbsp; Finance &nbsp;|&nbsp; ██████████ 8<br>
+              🥈 R. Pillay &nbsp;|&nbsp; IT &nbsp;|&nbsp; ████████░░ 6<br>
+              🥉 Z. Mokoena &nbsp;|&nbsp; Academic &nbsp;|&nbsp; ██████░░░░ 5
+            </div>
+          </div>
+          <div style="background:#e8edf5;text-align:center;font-family:sans-serif;font-size:.62rem;color:#888;margin-top:.4rem;padding:.3rem">
+            Generated: {timestamp} | Page 1
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

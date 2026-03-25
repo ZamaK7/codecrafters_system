@@ -1,0 +1,283 @@
+{% extends 'base.html' %}
+{% block title %}{{ ticket['ticket_no'] }} — Admin{% endblock %}
+{% block page_title %}Manage <span>{{ ticket['ticket_no'] }}</span>{% endblock %}
+{% block extra_css %}
+<style>
+.tl-dot.student{background:#2e7d32 !important;box-shadow:0 0 0 2px #2e7d32 !important;}
+.tl-card.student-comment{background:#f0fdf4;border-color:#a5d6a7;}
+.tl-card.internal-note{background:#fffbee;border-color:#F5A800;}
+</style>
+{% endblock %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-lg-8">
+    <!-- Ticket info -->
+    <div class="card mb-3">
+      <div class="card-head">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <span class="tno">{{ ticket['ticket_no'] }}</span>
+          <span class="st-badge st-{{ ticket['status'].replace(' ','-') }}">{{ ticket['status'] }}</span>
+          <span class="st-badge pr-{{ ticket['priority'] }}">{{ ticket['priority'] }}</span>
+        </div>
+      </div>
+      <div class="card-body p-4">
+        <h5 style="font-weight:700;font-size:1rem;margin-bottom:.5rem">{{ ticket['subject'] }}</h5>
+        <div style="font-size:.78rem;color:var(--muted);margin-bottom:1.1rem">
+          <i class="fas fa-building me-1"></i>{{ ticket['dept_name'] }} &nbsp;·&nbsp;
+          <i class="fas fa-calendar me-1"></i>{{ ticket['created_at'][:16] }} &nbsp;·&nbsp;
+          <i class="fas fa-user me-1"></i>
+          {% if ticket['is_anonymous'] %}Anonymous Submission{% else %}{{ ticket['student_name'] }} &nbsp;·&nbsp; {{ ticket['student_email'] }}{% endif %}
+        </div>
+        <div style="font-size:.88rem;line-height:1.75;white-space:pre-wrap">{{ ticket['description'] }}</div>
+        {% if attachments %}
+        <div class="mt-3 pt-3" style="border-top:1px solid var(--border)">
+          <div style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px">Attachments</div>
+          {% for a in attachments %}
+          <a href="{{ url_for('uploaded_file', filename=a['filename']) }}" target="_blank"
+             class="d-inline-flex align-items-center gap-2 me-2 mb-2 px-3 py-2 text-decoration-none"
+             style="background:var(--bg);border-radius:8px;border:1px solid var(--border);font-size:.79rem;color:var(--text)">
+            <i class="fas fa-paperclip" style="color:#003B71"></i>{{ a['original_name'] }}
+          </a>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Action cards row -->
+    <div class="row g-3 mb-3">
+      <!-- Change Priority -->
+      <div class="col-md-4">
+        <div class="card h-100">
+          <div class="card-head"><h6><i class="fas fa-flag me-2" style="color:#003B71"></i>Set Priority</h6>
+            <span class="st-badge pr-{{ ticket['priority'] }}">{{ ticket['priority'] }}</span>
+          </div>
+          <div class="card-body">
+            <form method="POST">
+              <input type="hidden" name="action" value="change_priority">
+              <div class="mb-3">
+                {% for p, col, icon in [('Urgent','#c62828','exclamation-triangle'),('High','#e65100','arrow-up'),('Medium','#F5A800','minus'),('Low','#2e7d32','arrow-down')] %}
+                <label style="display:flex;align-items:center;gap:.6rem;padding:.45rem .7rem;border-radius:8px;border:1.5px solid {% if ticket['priority']==p %}{{ col }}{% else %}var(--border){% endif %};background:{% if ticket['priority']==p %}#fef6f6{% else %}#fff{% endif %};margin-bottom:.4rem;cursor:pointer;">
+                  <input type="radio" name="new_priority" value="{{ p }}" {% if ticket['priority']==p %}checked{% endif %} style="accent-color:{{ col }}">
+                  <i class="fas fa-{{ icon }}" style="color:{{ col }};font-size:.8rem;width:14px"></i>
+                  <span style="font-size:.83rem;font-weight:{% if ticket['priority']==p %}700{% else %}500{% endif %}">{{ p }}</span>
+                  {% if ticket['priority']==p %}<span class="ms-auto" style="font-size:.65rem;background:{{ col }};color:#fff;padding:2px 7px;border-radius:10px;font-weight:700">Current</span>{% endif %}
+                </label>
+                {% endfor %}
+              </div>
+              <button type="submit" class="btn btn-primary btn-sm w-100"><i class="fas fa-flag me-1"></i>Update Priority</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      <!-- Assign Staff -->
+      <div class="col-md-8">
+        <div class="card h-100">
+          <div class="card-head"><h6><i class="fas fa-user-check me-2" style="color:#003B71"></i>Assign Staff</h6>
+            {% if ticket['assignee_name'] %}
+            <span class="st-badge" style="background:#e8f4fd;color:#1260a3">
+              <i class="fas fa-user me-1"></i>{{ ticket['assignee_name'] }}
+            </span>
+            {% endif %}
+          </div>
+          <div class="card-body">
+            {% if staff_list %}
+            <!-- Staff cards to select from -->
+            <form method="POST">
+              <input type="hidden" name="action" value="assign">
+              <div class="mb-2">
+                {% for s in staff_list %}
+                <label style="display:flex;align-items:center;gap:.6rem;padding:.55rem .7rem;border-radius:8px;border:1.5px solid {% if ticket['assigned_to']==s['id'] %}#003B71{% else %}var(--border){% endif %};background:{% if ticket['assigned_to']==s['id'] %}#eef2f8{% else %}#fff{% endif %};margin-bottom:.4rem;cursor:pointer;">
+                  <input type="radio" name="staff_id" value="{{ s['id'] }}" {% if ticket['assigned_to']==s['id'] %}checked{% endif %} style="accent-color:#003B71">
+                  <div style="width:28px;height:28px;border-radius:50%;background:#003B71;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;flex-shrink:0">{{ s['full_name'][:2].upper() }}</div>
+                  <div>
+                    <div style="font-size:.82rem;font-weight:600;color:var(--text)">{{ s['full_name'] }}</div>
+                    <div style="font-size:.7rem;color:var(--muted)">{{ s['email'] }}</div>
+                  </div>
+                  {% if ticket['assigned_to']==s['id'] %}
+                  <span class="ms-auto" style="font-size:.65rem;background:#003B71;color:#fff;padding:2px 7px;border-radius:10px;font-weight:700">Current</span>
+                  {% endif %}
+                </label>
+                {% endfor %}
+                <label style="display:flex;align-items:center;gap:.6rem;padding:.45rem .7rem;border-radius:8px;border:1.5px dashed var(--border);margin-bottom:.4rem;cursor:pointer;">
+                  <input type="radio" name="staff_id" value="" {% if not ticket['assigned_to'] %}checked{% endif %} style="accent-color:#e65100">
+                  <span style="font-size:.8rem;color:var(--muted)"><i class="fas fa-times me-1"></i>Unassign</span>
+                </label>
+              </div>
+              <div style="font-size:.71rem;color:var(--muted);margin-bottom:.6rem">
+                <i class="fas fa-building me-1"></i>{{ staff_list|length }} staff in <strong>{{ ticket['dept_name'] }}</strong>
+              </div>
+              <button type="submit" class="btn btn-primary btn-sm w-100"><i class="fas fa-user-check me-1"></i>Confirm Assignment</button>
+            </form>
+            {% else %}
+            <div style="text-align:center;padding:1.2rem;color:var(--muted)">
+              <i class="fas fa-user-slash d-block" style="font-size:1.8rem;opacity:.3;margin-bottom:.6rem"></i>
+              <div style="font-size:.83rem;font-weight:600;color:#e65100">No staff in {{ ticket['dept_name'] }}</div>
+              <div style="font-size:.75rem;margin-top:.3rem">Add staff to this department first</div>
+              <a href="{{ url_for('admin_departments') }}" class="btn btn-sm btn-outline-primary mt-2">
+                <i class="fas fa-plus me-1"></i>Manage Departments
+              </a>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Status is managed automatically: Assigned when admin assigns, In Progress when staff accepts -->
+
+    <!-- Add comment -->
+    <div class="card mb-3">
+      <div class="card-head"><h6><i class="fas fa-comment me-2" style="color:#003B71"></i>Add Comment</h6></div>
+      <div class="card-body">
+        <form method="POST">
+          <input type="hidden" name="action" value="comment">
+          <div class="mb-2">
+            <textarea name="message" class="form-control" rows="3" placeholder="Write a comment or update for the student…" required></textarea>
+          </div>
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="is_internal" id="int2">
+              <label class="form-check-label" for="int2" style="font-size:.81rem">Internal note only</label>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">Post Comment</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Full activity log -->
+    <div class="card">
+      <div class="card-head">
+        <h6><i class="fas fa-history me-2" style="color:#003B71"></i>Full Activity Log</h6>
+        <div style="display:flex;gap:.5rem;font-size:.7rem">
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:9px;height:9px;border-radius:50%;background:#003B71;display:inline-block"></span>Staff</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:9px;height:9px;border-radius:50%;background:#2e7d32;display:inline-block"></span>Student</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:9px;height:9px;border-radius:50%;background:#F5A800;display:inline-block"></span>Internal</span>
+        </div>
+      </div>
+      <div class="card-body p-4">
+        <div class="tl">
+          {% for u in updates %}
+          <div class="tl-item">
+            <div class="tl-dot {% if u['is_internal'] %}internal{% elif u['author_role']=='student' %}student{% endif %}"></div>
+            <div class="tl-card {% if u['is_internal'] %}internal-note{% elif u['author_role']=='student' %}student-comment{% endif %}">
+              <div class="d-flex justify-content-between align-items-start mb-1 gap-2 flex-wrap">
+                <div style="font-size:.81rem;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                  {% if u['author_role']=='student' %}
+                  <span style="background:#e8f5e9;color:#2e7d32;font-size:.65rem;padding:2px 7px;border-radius:10px;font-weight:700"><i class="fas fa-user-graduate me-1"></i>Student</span>
+                  {% elif u['is_internal'] %}
+                  <span style="background:#fff8e1;color:#9a6200;font-size:.65rem;padding:2px 7px;border-radius:10px;font-weight:700"><i class="fas fa-lock me-1"></i>Internal</span>
+                  {% else %}
+                  <span style="background:#eef2f8;color:#003B71;font-size:.65rem;padding:2px 7px;border-radius:10px;font-weight:700"><i class="fas fa-user-tie me-1"></i>Staff</span>
+                  {% endif %}
+                  <strong style="font-size:.83rem">{{ u['author_name'] }}</strong>
+                  {% if u['old_status'] and u['new_status'] %}
+                  <span style="color:var(--muted);font-size:.75rem">status:</span>
+                  <span class="st-badge st-{{ u['old_status'].replace(' ','-') }}" style="font-size:.6rem">{{ u['old_status'] }}</span>
+                  <i class="fas fa-arrow-right" style="font-size:.6rem;color:var(--muted)"></i>
+                  <span class="st-badge st-{{ u['new_status'].replace(' ','-') }}" style="font-size:.6rem">{{ u['new_status'] }}</span>
+                  {% endif %}
+                </div>
+                <span class="tl-ts">{{ u['created_at'][:16] }}</span>
+              </div>
+              {% if u['message'] %}<p style="font-size:.84rem;margin:.3rem 0 0;line-height:1.6">{{ u['message'] }}</p>{% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Student Feedback Panel -->
+    {% if ticket['rating'] %}
+    <div class="card mt-3">
+      <div class="card-head" style="background:linear-gradient(135deg,#e8f5e9,#f1f8e9)">
+        <h6 style="color:#2e7d32"><i class="fas fa-star me-2"></i>Student Feedback</h6>
+        <div style="display:flex;gap:2px">
+          {% for i in range(1,6) %}<span style="color:{% if i<=ticket['rating'] %}#f59e4b{% else %}#ddd{% endif %};font-size:1rem">★</span>{% endfor %}
+          <span style="font-size:.82rem;font-weight:700;color:#2e7d32;margin-left:6px">{{ ticket['rating'] }}/5</span>
+        </div>
+      </div>
+      <div class="card-body">
+        {% if ticket['rating_comment'] %}
+        <div style="background:#f9fbe7;border-left:4px solid #F5A800;border-radius:0 8px 8px 0;padding:.8rem 1rem;font-size:.88rem;line-height:1.65;font-style:italic;color:#333">
+          <i class="fas fa-quote-left me-2" style="color:#F5A800;opacity:.6"></i>{{ ticket['rating_comment'] }}<i class="fas fa-quote-right ms-2" style="color:#F5A800;opacity:.6"></i>
+        </div>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:.5rem">
+          <i class="fas fa-user-graduate me-1"></i>{{ ticket['student_name'] if not ticket['is_anonymous'] else 'Anonymous student' }}
+          {% if ticket['resolved_at'] %} · Reviewed after resolution on {{ ticket['resolved_at'][:10] }}{% endif %}
+        </div>
+        {% else %}
+        <div style="font-size:.84rem;color:var(--muted)">Student rated {{ ticket['rating'] }}/5 but left no written comment.</div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Right sidebar -->
+  <div class="col-lg-4">
+    <div class="card mb-3">
+      <div class="card-head"><h6>Ticket Info</h6></div>
+      <div class="card-body">
+        {% macro row(l,v) %}<div class="mb-3"><div style="font-size:.69rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">{{l}}</div><div style="font-size:.85rem;font-weight:500">{{v}}</div></div>{% endmacro %}
+        {{ row('Ticket No', ticket['ticket_no']) }}
+        {{ row('Department', ticket['dept_name']) }}
+        {{ row('Submitted', ticket['created_at'][:16]) }}
+        {{ row('Last Updated', ticket['updated_at'][:16]) }}
+        {% if not ticket['is_anonymous'] %}
+        {{ row('Student', ticket['student_name']) }}
+        {{ row('Student No', ticket['student_no'] or 'N/A') }}
+        {{ row('Email', ticket['student_email']) }}
+        {% if ticket['student_phone'] %}{{ row('Phone', ticket['student_phone']) }}{% endif %}
+        {% endif %}
+        <div class="mb-3">
+          <div style="font-size:.69rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">Status</div>
+          <span class="st-badge st-{{ ticket['status'].replace(' ','-') }}">{{ ticket['status'] }}</span>
+          <div style="font-size:.7rem;color:var(--muted);margin-top:5px"><i class="fas fa-magic me-1" style="color:#F5A800"></i>Auto-updates on assign &amp; accept</div>
+          {% if ticket['status'] in ('Resolved','Closed') %}
+          <form method="POST" class="mt-2">
+            <input type="hidden" name="action" value="reopen">
+            <button type="submit" class="btn btn-sm w-100" style="background:#e65100;color:#fff;border-radius:7px;font-size:.78rem;font-weight:700;">
+              <i class="fas fa-redo me-1"></i>Reopen Ticket
+            </button>
+          </form>
+          {% endif %}
+        </div>
+        <div class="mb-3">
+          <div style="font-size:.69rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">Priority</div>
+          <span class="st-badge pr-{{ ticket['priority'] }}">{{ ticket['priority'] }}</span>
+        </div>
+        {% if ticket['assignee_name'] %}{{ row('Assigned To', ticket['assignee_name']) }}{% endif %}
+        {% if ticket['resolved_at'] %}{{ row('Resolved At', ticket['resolved_at'][:16]) }}{% endif %}
+        {% if ticket['rating'] %}
+        <div class="mb-3">
+          <div style="font-size:.69rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">Student Rating</div>
+          <div class="d-flex align-items-center gap-1">
+            {% for i in range(1,6) %}<span style="color:{% if i<=ticket['rating'] %}#f59e4b{% else %}#ddd{% endif %}">★</span>{% endfor %}
+            <span style="font-size:.82rem;font-weight:600;margin-left:4px">{{ ticket['rating'] }}/5</span>
+          </div>
+          {% if ticket['rating_comment'] %}<div style="font-size:.78rem;color:var(--muted);margin-top:4px">{{ ticket['rating_comment'] }}</div>{% endif %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h6>Activity Summary</h6></div>
+      <div class="card-body">
+        <div class="d-flex justify-content-between mb-2" style="font-size:.84rem">
+          <span style="color:var(--muted)">Total updates</span><strong>{{ updates|length }}</strong>
+        </div>
+        <div class="d-flex justify-content-between" style="font-size:.84rem">
+          <span style="color:var(--muted)">Attachments</span><strong>{{ attachments|length }}</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="mt-3">
+  <a href="{{ url_for('admin_tickets') }}" class="btn btn-outline-secondary btn-sm" style="border-radius:8px">
+    <i class="fas fa-arrow-left me-1"></i>Back to Tickets
+  </a>
+</div>
+{% endblock %}

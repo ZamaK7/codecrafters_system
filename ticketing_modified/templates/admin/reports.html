@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}Reports — CodeCrafters{% endblock %}
+{% block page_title %}Reports &amp; <span>Analytics</span>{% endblock %}
+{% block content %}
+<!-- KPI Stats -->
+<div class="row g-3 mb-4">
+  {% set sc=[('#f0f0f0','#555','fa-inbox','Total Tickets',total),
+             ('#fff8e6','#9a6200','fa-clock','Pending',pending),
+             ('#e8f4fd','#1260a3','fa-spinner','In Progress',in_prog),
+             ('#e8f8ee','#157a3a','fa-check-double','Resolved',resolved)] %}
+  {% for bg,cl,ic,lbl,val in sc %}
+  <div class="col-6 col-md-3">
+    <div class="stat-c"><div class="stat-ic" style="background:{{bg}};color:{{cl}}"><i class="fas {{ic}}"></i></div>
+    <div class="stat-num" style="color:{{cl}}">{{val}}</div><div class="stat-lbl">{{lbl}}</div></div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Resolution Rate -->
+{% if total > 0 %}
+<div class="card mb-4">
+  <div class="card-body p-4">
+    <div class="row g-3 align-items-center">
+      <div class="col-md-4 text-center">
+        <div style="font-size:3rem;font-weight:800;color:#157a3a;font-family:'JetBrains Mono',monospace;line-height:1">{{ ((resolved/total)*100)|round|int }}%</div>
+        <div style="font-size:.78rem;color:var(--muted);margin-top:4px">Resolution Rate</div>
+      </div>
+      <div class="col-md-4 text-center">
+        <div style="font-size:3rem;font-weight:800;color:#f59e4b;font-family:'JetBrains Mono',monospace;line-height:1">{{ avg_rating }}</div>
+        <div style="font-size:.78rem;color:var(--muted);margin-top:4px">Avg. Student Rating</div>
+      </div>
+      <div class="col-md-4">
+        <div style="height:10px;background:var(--border);border-radius:5px;margin-bottom:6px">
+          <div style="height:10px;background:#157a3a;border-radius:5px;width:{{ ((resolved/total)*100)|round|int }}%"></div>
+        </div>
+        <div style="font-size:.75rem;color:var(--muted)">{{ resolved }} of {{ total }} tickets resolved</div>
+        <div style="height:10px;background:var(--border);border-radius:5px;margin:8px 0 6px">
+          <div style="height:10px;background:#9a6200;border-radius:5px;width:{{ ((pending/total)*100)|round|int }}%"></div>
+        </div>
+        <div style="font-size:.75rem;color:var(--muted)">{{ pending }} of {{ total }} still pending</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="row g-3">
+  <!-- By Department -->
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-head"><h6><i class="fas fa-chart-bar me-2" style="color:var(--red)"></i>Tickets by Department</h6></div>
+      <div class="card-body">
+        {% if dept_stats %}
+        {% set max_d = dept_stats|map(attribute='cnt')|max %}
+        {% for d in dept_stats %}
+        <div class="mb-3">
+          <div class="d-flex justify-content-between mb-1">
+            <span style="font-size:.83rem;font-weight:500">{{ d['name'] }}</span>
+            <span style="font-size:.83rem;font-weight:700;color:var(--red)">{{ d['cnt'] }}</span>
+          </div>
+          <div style="height:8px;background:var(--border);border-radius:4px">
+            <div style="height:8px;background:var(--red);border-radius:4px;width:{{ ((d['cnt']/max_d)*100)|round|int }}%;opacity:.8"></div>
+          </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty-st py-3"><i class="fas fa-chart-bar d-block"></i><span style="font-size:.84rem">No data yet</span></div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- By Priority -->
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-head"><h6><i class="fas fa-flag me-2" style="color:var(--red)"></i>Tickets by Priority</h6></div>
+      <div class="card-body">
+        {% if prio_stats %}
+        {% set max_p = prio_stats|map(attribute='cnt')|max %}
+        {% set pc={'Urgent':'#001d3d','High':'#003B71','Medium':'#9a6200','Low':'#157a3a'} %}
+        {% for p in prio_stats %}
+        <div class="mb-3">
+          <div class="d-flex justify-content-between mb-1">
+            <span class="st-badge pr-{{ p['priority'] }}">{{ p['priority'] }}</span>
+            <span style="font-size:.83rem;font-weight:700">{{ p['cnt'] }}</span>
+          </div>
+          <div style="height:8px;background:var(--border);border-radius:4px">
+            <div style="height:8px;background:{{ pc.get(p['priority'],'#003B71') }};border-radius:4px;width:{{ ((p['cnt']/max_p)*100)|round|int }}%"></div>
+          </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty-st py-3"><i class="fas fa-chart-pie d-block"></i><span style="font-size:.84rem">No data yet</span></div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

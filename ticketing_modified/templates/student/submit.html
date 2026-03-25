@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block title %}Submit Ticket — CodeCrafters{% endblock %}
+{% block page_title %}Submit a <span>Ticket</span>{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-head">
+        <h6><i class="fas fa-paper-plane me-2" style="color:#003B71"></i>New Support Ticket</h6>
+        <span style="font-size:.73rem;color:var(--muted)">Fields marked <span style="color:#003B71">*</span> are required</span>
+      </div>
+      <div class="card-body p-4">
+        <form method="POST" enctype="multipart/form-data">
+          <!-- Department -->
+          <div class="mb-3">
+            <label class="form-label">Department <span style="color:#003B71">*</span></label>
+            <select name="department_id" class="form-select" required>
+              <option value="">— Select Department —</option>
+              {% for d in departments %}
+              <option value="{{ d['id'] }}">{{ d['name'] }}</option>
+              {% endfor %}
+            </select>
+            <div style="font-size:.72rem;color:var(--muted);margin-top:4px">Your ticket will be automatically routed to the selected department</div>
+          </div>
+          <!-- Subject -->
+          <div class="mb-3">
+            <label class="form-label">Subject / Title <span style="color:#003B71">*</span></label>
+            <input type="text" name="subject" class="form-control" placeholder="e.g. Incorrect fee statement for 2026" maxlength="200" required>
+          </div>
+          <!-- Description -->
+          <div class="mb-3">
+            <label class="form-label">Description <span style="color:#003B71">*</span></label>
+            <textarea name="description" class="form-control" rows="5" id="desc"
+              placeholder="Provide full details of your issue. Include dates, reference numbers, staff names, or any other relevant information..."
+              minlength="10" required></textarea>
+            <div style="font-size:.72rem;color:var(--muted);margin-top:4px"><span id="dcount">0</span> characters (minimum 10)</div>
+          </div>
+          <!-- Attachments -->
+          <div class="mb-4">
+            <label class="form-label">Attach Supporting Documents <span style="color:var(--muted);font-weight:400">(Optional)</span></label>
+            <div id="dropzone" onclick="document.getElementById('fi').click()"
+              style="border:2px dashed var(--border);border-radius:9px;padding:1.4rem;text-align:center;cursor:pointer;background:var(--bg);transition:all .15s">
+              <i class="fas fa-cloud-upload-alt" style="font-size:1.4rem;color:var(--muted);display:block;margin-bottom:7px"></i>
+              <p style="font-size:.82rem;color:var(--muted);margin:0">Drag & drop files or <span style="color:#003B71;font-weight:600">click to browse</span></p>
+              <p style="font-size:.7rem;color:var(--muted);margin-top:3px;margin-bottom:0">PDF, Word, JPG, PNG — Max 5MB per file</p>
+              <input type="file" name="attachments" id="fi" multiple accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" class="d-none">
+            </div>
+            <div id="flist" class="mt-2"></div>
+          </div>
+          <!-- POPIA -->
+          <div class="mb-4 p-3" style="background:#fff8e6;border-radius:9px;border-left:3px solid #9a6200">
+            <div style="font-size:.76rem;color:#7a4500;line-height:1.6">
+              <i class="fas fa-shield-alt me-1"></i><strong>POPIA Notice:</strong> Your personal information is collected solely for ticket resolution purposes and handled in accordance with the Protection of Personal Information Act.
+            </div>
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane me-2"></i>Submit Ticket</button>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary" style="border-radius:8px">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<style>
+#dropzone:hover,#dropzone.dg{border-color:#003B71!important;background:#fff8f8!important;}
+</style>
+<script>
+const desc=document.getElementById('desc'),dc=document.getElementById('dcount');
+desc.addEventListener('input',()=>{dc.textContent=desc.value.length;dc.style.color=desc.value.length<10?'#003B71':'var(--muted)';});
+const dz=document.getElementById('dropzone'),fi=document.getElementById('fi'),fl=document.getElementById('flist');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('dg');});
+dz.addEventListener('dragleave',()=>dz.classList.remove('dg'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('dg');fi.files=e.dataTransfer.files;showFiles(e.dataTransfer.files);});
+fi.addEventListener('change',()=>showFiles(fi.files));
+function showFiles(files){fl.innerHTML='';Array.from(files).forEach(f=>{const d=document.createElement('div');d.style.cssText='display:flex;align-items:center;gap:8px;padding:5px 9px;background:var(--bg);border-radius:6px;margin-top:4px;font-size:.78rem;';d.innerHTML=`<i class="fas fa-file" style="color:#003B71"></i><span style="flex:1">${f.name}</span><span style="color:var(--muted)">${(f.size/1024).toFixed(0)}KB</span>`;fl.appendChild(d);});}
+</script>
+{% endblock %}
